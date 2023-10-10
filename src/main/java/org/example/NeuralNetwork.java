@@ -26,18 +26,23 @@ public class NeuralNetwork {
         return new NeuralNetConfiguration.Builder()
                 .seed(123)
                 .weightInit(WeightInit.XAVIER)
-                .updater(org.nd4j.linalg.learning.config.Adam.builder().learningRate(0.02).build())
+                .updater(org.nd4j.linalg.learning.config.Adam.builder().learningRate(0.001).build())
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                .activation(Activation.RELU)
                 .list()
-                .layer(0, new DenseLayer.Builder()
+                .layer(new DenseLayer.Builder()
                         .nIn(numInputs)
                         .nOut(numHidden)  // Number of neurons in the hidden layer
                         .activation(Activation.RELU)
                         .build())
-                .layer(1, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                .layer(new DenseLayer.Builder()
                         .nIn(numHidden)  // Number of neurons in the hidden layer
-                        .nOut(numOutputs)  // Number of output classes
+                        .nOut(numHidden)  // Number of output classes
+                        .build())
+                .layer(new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
                         .activation(Activation.SOFTMAX)
+                        .nIn(numHidden)
+                        .nOut(numOutputs)
                         .build())
                 .build();
     }

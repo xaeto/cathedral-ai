@@ -5,19 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c9b29cda-a329-42e0-bb9f-1ffdeefe9402" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/NeuralAgent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/State.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/God_dataset.json" beforeDir="false" afterPath="$PROJECT_DIR$/God_dataset.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/cathedral/core/GodAgent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/GodAgent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/cathedral/core/HeroAgent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/HeroAgent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/cathedral/core/SaintAgent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/SaintAgent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/cathedral/core/SmartAgent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/SmartAgent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Network.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/NeuralNetwork.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/NeuralNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/NeuralNetwork.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,7 +84,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1695302248963</updated>
-      <workItem from="1696959247305" duration="14283000" />
+      <workItem from="1696959247305" duration="15008000" />
     </task>
     <servers />
   </component>
