@@ -3,7 +3,7 @@ package org.cathedral.core;
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
-import org.example.Network;
+import org.example.NeuralNetwork;
 
 import java.util.Optional;
 
@@ -11,7 +11,7 @@ public class SmartAgent implements Agent {
     @Override
     public Optional<Placement> calculateTurn(Game game, int i, int i1) {
         // segment board into chunks, divide x / 2 and y / 2
-        var board = Network.GenerateBoardMatrix(game, game.getBoard());
+        var board = NeuralNetwork.GenerateBoardMatrix(game);
         var placeables = game.getPlacableBuildings(game.getCurrentPlayer());
 
         var placedBuildings = game.getPlacableBuildings()

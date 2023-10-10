@@ -2,7 +2,7 @@ package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.*;
-import org.example.Network;
+import org.example.NeuralNetwork;
 
 import java.util.*;
 
@@ -34,11 +34,9 @@ public class SaintAgent implements Agent {
         try{
             if(!possibleTurns.isEmpty()){
                 Placement max = Collections.max(possibleTurns, Comparator.comparing(c -> c.building().score()));
-                Network.Add(game, max, game.getBoard());
                 return Optional.of(max);
             }
         } finally {
-            Network.Save(this.name());
         }
         return Optional.empty();
     }

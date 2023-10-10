@@ -2,7 +2,7 @@ package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.*;
-import org.example.Network;
+import org.example.NeuralNetwork;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ public class HeroAgent implements Agent {
                 for(int x = 0; x < 10; ++x){
                     for(int y = 0; y < 10; ++y){
                         var placement = new Placement(new Position(x,y), direction, building);
-                        if(game.takeTurn(placement)){
+                        if(game.takeTurn(placement, true)){
                             possibleTurns.add(placement);
                             game.undoLastTurn();
                         }
@@ -30,7 +30,6 @@ public class HeroAgent implements Agent {
 
         if(!possibleTurns.isEmpty()){
             var turn = possibleTurns.get(new Random().nextInt(possibleTurns.size()));
-            Network.Add(game, turn, game.getBoard());
             return Optional.of(turn);
         }
 
