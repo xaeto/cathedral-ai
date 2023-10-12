@@ -1,9 +1,8 @@
 package org.example;
 
-import com.google.gson.Gson;
 import de.fhkiel.ki.cathedral.game.*;
-import org.bytedeco.javacv.FrameFilter;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.BackpropType;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
@@ -13,65 +12,61 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.util.*;
 
 public class NeuralNetwork {
-    private MultiLayerNetwork model;
+    private MultiLayerNetwork network;
+
     public static MultiLayerConfiguration createConfiguration(int numInputs, int numHidden, int numOutputs) {
         return new NeuralNetConfiguration.Builder()
                 .seed(123)
-                .weightInit(WeightInit.XAVIER)
+                .weightInit(WeightInit.SIGMOID_UNIFORM)
                 .updater(org.nd4j.linalg.learning.config.Adam.builder().learningRate(0.001).build())
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .activation(Activation.RELU)
                 .list()
                 .layer(new DenseLayer.Builder()
                         .nIn(numInputs)
-                        .nOut(numHidden)  // Number of neurons in the hidden layer
+                        .nOut(numHidden)
                         .activation(Activation.RELU)
                         .build())
                 .layer(new DenseLayer.Builder()
-                        .nIn(numHidden)  // Number of neurons in the hidden layer
-                        .nOut(numHidden)  // Number of output classes
+                        .nIn(numHidden)
+                        .nOut(numHidden)
                         .build())
-                .layer(new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-                        .activation(Activation.SOFTMAX)
+                .layer(new OutputLayer.Builder(LossFunctions.LossFunction.L2)
+                        .activation(Activation.SOFTMAX)  // Use softmax for multiclass classification
                         .nIn(numHidden)
                         .nOut(numOutputs)
                         .build())
                 .build();
     }
+
     public NeuralNetwork(int numInputs, int numHidden, int numOutputs){
-
         var cfg = createConfiguration(numInputs, numHidden, numOutputs);
-
-        model = new MultiLayerNetwork(cfg);
-        load("./data.txt");
-        model.init();
-        System.out.println(model.summary());
+        network = new MultiLayerNetwork(cfg);
+        load("./data.zip");
+        network.init();
     }
 
     public INDArray predict(INDArray input) {
-        return model.output(input);
+        return network.output(input);
     }
 
     public void save(String filePath) {
         System.out.println("Saving network model.");
         try{
-            System.out.println(model.summary());
-            ModelSerializer.writeModel(model, filePath, true);
+            ModelSerializer.writeModel(network, filePath, true);
         } catch(Exception ex){
         }
     }
 
     public void load(String filePath) {
         try{
-            model = ModelSerializer.restoreMultiLayerNetwork(new File(filePath));
+            network = ModelSerializer.restoreMultiLayerNetwork(new File(filePath));
         } catch(Exception ex){
         }
     }
@@ -87,6 +82,46 @@ public class NeuralNetwork {
             System.out.print("\t");
         }
         System.out.println();
+    }
+
+    public static int[] flatten(Game game){
+        var field = NeuralNetwork.GenerateBoardMatrix(game);
+        return Arrays.stream(field).flatMapToInt(Arrays::stream)
+                .toArray();
+    }
+
+    public void fit(INDArray input, INDArray output){
+        network.fit(input, output);
+        System.out.println(network.feedForward());
+        save("./data.zip");
+    }
+
+    public long getNumOutputs() {
+        // Assuming the output layer is the last layer in your neural network configuration
+        return network.getLayer(network.getLayers().length - 1).getParam("W").size(1);
+    }
+
+    public void train(INDArray input, INDArray target) {
+        // Forward pass to get current predictions
+        target = target.reshape(1, 2);
+        INDArray predictions = network.output(input);
+
+        // Compute the loss between predictions and target probabilities
+        double loss = computeLoss(predictions, target);
+        System.out.println("Loss: " + loss);
+
+        // Backpropagation to compute gradients
+        network.fit(input, target);
+
+        // Update the weights using the optimizer
+        network.update(network.gradient());
+        // Save the trained model after training
+        save("data.zip");
+    }
+
+    private double computeLoss(INDArray predictions, INDArray target) {
+        // Assuming a simple mean squared error loss for illustration
+        return predictions.squaredDistance(target) / predictions.size(0);
     }
 
     public static int[][] GenerateBoardMatrix(Game game){
