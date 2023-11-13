@@ -3,8 +3,7 @@ package org.cathedral.core;
 import de.fhkiel.ki.cathedral.game.*;
 
 import java.util.Arrays;
-import java.util.Random;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Heuristic {
     public static double calculatePlacementScore(Placement placement){
@@ -14,61 +13,18 @@ public class Heuristic {
         return placement.building().score();
     }
 
-    private static int countFieldsByPlayerId(Board board, Color color){
+    public static int getFieldCountByColor(Board board, Color color) {
         var field = board.getField();
-        int count = 0;
-        for(int y = 0; y < 10; ++y){
-            for(int x = 0; x < 10; ++x){
-                if(field[y][x] == color){
-                    count++;
-                }
-            }
-        }
 
-        return count;
+        return Arrays.stream(field)
+                .flatMap(Arrays::stream)
+                .filter(cell -> cell == color)
+                .mapToInt(c -> 1)
+                .sum();
     }
 
     private static boolean isValidPosition(int x, int y) {
         return x >= 0 && x < 10 && y >= 0 && y < 10;
-    }
-
-
-    private static double calculateCenterControlHeuristic(Board board, Color color) {
-        var field = board.getField();
-        int centerX = board.getField().length / 2;
-        int centerY = board.getField().length / 2;
-        int centerSize = 3; // Größe des Zentrums (3x3)
-
-        int centerControl = 0;
-        int totalCenterPositions = 0;
-
-        for (int y = centerY - centerSize / 2; y <= centerY + centerSize / 2; y++) {
-            for (int x = centerX - centerSize / 2; x <= centerX + centerSize / 2; x++) {
-                if (isValidPosition(x, y)) {
-                    totalCenterPositions++;
-
-                    if (field[y][x] == color) {
-                        centerControl++;
-                    }
-                }
-            }
-        }
-
-        // Wenn das Zentrum leer ist, bewerte es neutral
-        if (totalCenterPositions == 0) {
-            return 0.0;
-        }
-
-        // Berechne den Anteil der Kontrolle über das Zentrum
-        double centerControlRatio = (double) centerControl / totalCenterPositions;
-
-        // Skaliere den Wert auf eine Skala zwischen -1 und 1 (neutral in der Mitte)
-        double scaledCenterControl = (centerControlRatio - 0.5) * 2.0;
-
-        // Belohne die Kontrolle über das Zentrum
-        double centerControlBonus = 1.5; // Experimentiere mit diesem Wert
-
-        return scaledCenterControl * centerControlBonus;
     }
 
     private static double buildingHeuristic(Placement placement){
@@ -76,35 +32,6 @@ public class Heuristic {
             return placement.building().score()*10;
         }
         return 0;
-    }
-    private static double preferNearEnemyBuildingsHeuristic(Game game) {
-        var currentPlayer = game.getCurrentPlayer();
-        var enemy = currentPlayer.opponent();
-        var board = game.getBoard();
-
-        double nearEnemyBonus = 0.0;
-
-        // Iteriere über die Gebäude des aktuellen Spielers
-        for (var playerBuilding : game.getPlacableBuildings(currentPlayer)) {
-            for (var placement : playerBuilding.getPossiblePlacements(board)) {
-                // Simuliere das Platzieren des Gebäudes
-                var copyBoard = board.copy();
-                copyBoard.placeBuilding(placement, true);
-
-                // Iteriere über die Gebäude des Gegners
-                for (var enemyBuilding : board.getPlacableBuildings(enemy)) {
-                    for (var enemyPlacement : enemyBuilding.getPossiblePlacements(copyBoard)) {
-                        // Berechne die Entfernung zwischen den Gebäuden
-                        double distance = calculateDistance(placement.position(), enemyPlacement.position());
-
-                        // Berücksichtige die Entfernung in der Bewertung
-                        nearEnemyBonus += 1.0 / (distance + 1);
-                    }
-                }
-            }
-        }
-
-        return nearEnemyBonus;
     }
 
     // Hilfsfunktion zur Berechnung der Entfernung zwischen zwei Positionen
@@ -138,25 +65,63 @@ public class Heuristic {
         return 0;
     }
 
+    private static double block(Game game) {
+        var placement = game.lastTurn().getAction();
+        game.undoLastTurn();
+
+        var enemyPossiblePlacements = game.getBoard().getPlacableBuildings(game.getCurrentPlayer().opponent());
+        double currentEnemyFieldScore = getFieldCountByColor(game.getBoard(), game.getCurrentPlayer().opponent().subColor());
+
+        boolean reset = false;
+        double blockedScore = 0.0;
+
+        for (var enemyBuildings : enemyPossiblePlacements){
+            for(var enemyPlacement : enemyBuildings.getPossiblePlacements(game.getBoard())){
+                game.takeTurn(placement);
+                game.takeTurn(enemyPlacement);
+                double eval = getFieldCountByColor(game.getBoard(), game.getCurrentPlayer().opponent().subColor());
+                if(eval + 3 > currentEnemyFieldScore){
+                    reset = true;
+                    blockedScore = eval*placement.building().score();
+                    break;
+                }
+            }
+        }
+
+        if(reset){
+            game.undoLastTurn();
+        }
+
+        return blockedScore;
+    }
     private static double blockEnemyBuildings(Game game){
         if(game.lastTurn() != null){
             var cp = game.copy();
-            var turn = cp.lastTurn();
-            Placement previousEnemyPlacement;
+            var turn = cp.lastTurn().getAction();
+            Placement previousEnemyPlacement = null;
 
-            double currentScore = countFieldsByPlayerId(cp.getBoard(), cp.getCurrentPlayer());
+            double currentScore = getFieldCountByColor(cp.getBoard(), cp.getCurrentPlayer());
             var buildings = cp.getPlacableBuildings(game.getCurrentPlayer());
             for (Building b : buildings){
                 for(var placement : b.getPossiblePlacements(cp)){
                     var placementGameCopy = cp.copy();
                     placementGameCopy.takeTurn(placement, true);
-                    double score = countFieldsByPlayerId(placementGameCopy.getBoard(), cp.getCurrentPlayer());
+                    double score = getFieldCountByColor(placementGameCopy.getBoard(), cp.getCurrentPlayer());
                     if(score >= currentScore){
                         previousEnemyPlacement = placement;
                     }
                 }
             }
             cp.undoLastTurn();
+
+            if(previousEnemyPlacement != null){
+                cp.undoLastTurn();
+                if(cp.takeTurn(turn, true)){
+                    if(!cp.takeTurn(previousEnemyPlacement)){
+                        return 10;
+                    }
+                }
+            }
         }
 
         return 0;
@@ -164,20 +129,41 @@ public class Heuristic {
 
     private static double calculatePlayerHeuristic(Game game, Color color){
         var board = game.getBoard();
-        double playerFields = countFieldsByPlayerId(board, color) * 2;
-        double capturedFields = countFieldsByPlayerId(board, color.subColor());
-        double enemyFields = countFieldsByPlayerId(board, color.opponent());
-        double capturedEnemyFields = countFieldsByPlayerId(board, color.opponent().subColor());
-        if (game.lastTurn() != null && game.lastTurn().getTurnNumber() <= 2) {
+        double playerFields = getFieldCountByColor(board, color) * 2;
+
+        if (game.lastTurn().getTurnNumber() <= 2) {
             return calculateCenterHeuristic(game);
         }
+
+        // 1. Gebietskampf (Gebiete einnehmen, Gegner davon abhalten)
+        // 2. Gebäude in der mitte platzieren (Welche Gebäude hat der Gegner zur Verfügung), gegnerische Gebaeude sollen
+        // in eingenomme Zonen platziert werden.
+        // 3. Auffuellen mit kleinen Gebaeuden
+        // 4. Auffuellen der eingenommenen Gebiete
         return playerFields
-                + capturedFields * 10
-                - enemyFields
-                - capturedEnemyFields
-                + buildingHeuristic(game.lastTurn().getAction())
-                + surroundEmptyFieldsHeuristic(game)
-                + edgeBuildingHeuristic(game.lastTurn().getAction());
+                + playerFields + game.lastTurn().getAction().building().score() * 2
+                + getFieldCountByColor(board, color.subColor())*10
+                + calculateScoreHeuristic(game)
+                + calculateDistanceToCenter(game.lastTurn().getAction().position())
+                + block(game)*100;
+
+                // + capturedFields
+                // - enemyFields
+                // - capturedEnemyFields
+                // + buildingHeuristic(game.lastTurn().getAction())
+                // + surroundEmptyFieldsHeuristic(game)
+                // + edgeBuildingHeuristic(game.lastTurn().getAction());
+    }
+
+    private static double evaluateMaterial(Game game){
+        return game.score().getOrDefault(game.getCurrentPlayer(), 0)
+               - game.score().getOrDefault(game.getCurrentPlayer().opponent(), 0);
+    }
+
+    private static double calculateScoreHeuristic(Game game) {
+        int currentPlayerScore = game.score().getOrDefault(game.getCurrentPlayer(), 0);
+        int opponentScore = game.score().getOrDefault(game.getCurrentPlayer().opponent(), 0);
+        return currentPlayerScore - opponentScore;
     }
 
     private static double surroundEmptyFieldsHeuristic(Game game) {
@@ -192,8 +178,14 @@ public class Heuristic {
 
         return emptyFields * emptyFieldBonus;
     }
+    private static double calculateDistanceToCenter(Position position) {
+        // Implementiere eine Logik zur Berechnung der Entfernung zum Zentrum
+        int centerX = 5; // Annahme: Spielfeldgröße ist 10x10
+        int centerY = 5;
+        return Math.abs(position.x() - centerX) + Math.abs(position.y() - centerY);
+    }
 
-    public static double calculateZoneHeuristic(Game game){
+    public static double calculateHeuristics(Game game){
         double heuristic = calculatePlayerHeuristic(game, game.getCurrentPlayer());
         return heuristic;
     }

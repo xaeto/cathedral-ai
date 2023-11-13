@@ -2,7 +2,9 @@ package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.*;
+import org.example.Network;
 import org.example.NeuralNetwork;
+import org.opencv.dnn.Net;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,10 @@ public class HeroAgent implements Agent {
 
         if(!possibleTurns.isEmpty()){
             var turn = possibleTurns.get(new Random().nextInt(possibleTurns.size()));
+            Network.printMatrix(game.getBoard().getField());
+            System.out.println(Network.getFieldCountByColor(game.getBoard(), game.getCurrentPlayer().subColor()));
+            System.out.println(Network.getFieldCountByColor(game.getBoard(), game.getCurrentPlayer().opponent().subColor()));
+            System.out.println();
             return Optional.of(turn);
         }
 

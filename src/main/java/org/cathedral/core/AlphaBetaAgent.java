@@ -5,6 +5,7 @@ import de.fhkiel.ki.cathedral.game.Board;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
+import org.example.NeuralNetwork;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,24 +40,24 @@ public class AlphaBetaAgent implements Agent {
 
     private double miniMaxParallel(Game state, int depth, double alpha, double beta, boolean maximizePlayer) {
         if (depth == 0) {
-            return Heuristic.calculateZoneHeuristic(state);
+            return Heuristic.calculateHeuristics(state);
         }
 
         List<Placement> turns = getPossiblePlacements(state.getBoard(), state.getCurrentPlayer());
 
         return turns.parallelStream().mapToDouble(turn -> {
             var gameCopy = state.copy();
-            gameCopy.takeTurn(turn, true);
+            gameCopy.takeTurn(turn, false);
             return miniMax(gameCopy, depth - 1, alpha, beta, !maximizePlayer);
         }).max().orElse(maximizePlayer ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
     }
 
     private double miniMax(Game game, int depth, double alpha, double beta, boolean maximizePlayer){
         if(depth == 0){
-            return Heuristic.calculateZoneHeuristic(game);
+            return Heuristic.calculateHeuristics(game);
         }
-        var state = game.copy();
 
+        var state = game.copy();
         if(maximizePlayer){
             double max = Double.NEGATIVE_INFINITY;
             var turns = getPossiblePlacements(state.getBoard(), state.getCurrentPlayer());

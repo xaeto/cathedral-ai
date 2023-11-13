@@ -39,7 +39,7 @@ public class McState implements Serializable {
                 var board = this.board.copy();
                 board.placeBuilding(placement, true);
                 var game = new Game(board);
-                double score = Heuristic.calculateZoneHeuristic(game);
+                double score = Heuristic.calculateHeuristics(game);
                 var state = new McState(board, this.playerColor.opponent());
                 state.setScore(score);
                 states.add(state);

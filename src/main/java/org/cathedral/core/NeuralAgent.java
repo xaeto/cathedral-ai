@@ -2,10 +2,8 @@ package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.*;
-import org.apache.commons.compress.archivers.zip.ScatterZipOutputStream;
 import org.example.NeuralNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.cpu.nativecpu.NDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
 import java.util.*;
@@ -101,7 +99,7 @@ public class NeuralAgent implements Agent {
                 var nextField = NeuralNetwork.GenerateBoardMatrix(gameState);
                 NeuralNetwork.printMatrix(nextField);
                 // long nextFieldCount = buildingCount + countOccurences(nextField, owned);
-                double score = Heuristic.calculateZoneHeuristic(gameState);
+                double score = Heuristic.calculateHeuristics(gameState);
                 System.out.println("Score: " + score);
                 if(score > maxScore){
                     best = placement;
