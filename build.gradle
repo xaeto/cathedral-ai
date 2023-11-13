@@ -17,6 +17,8 @@ dependencies {
     implementation "com.discord4j:discord4j-core:3.2.3"
 
     implementation 'org.deeplearning4j:deeplearning4j-core:1.0.0-M2.1'
+    implementation 'org.deeplearning4j:deeplearning4j-ui:1.0.0-M2.1'
+    implementation 'org.deeplearning4j:rl4j-core:1.0.0-M1.1'
     implementation 'org.nd4j:nd4j-native-platform:1.0.0-M2.1'
     implementation 'nz.ac.waikato.cms.weka:weka-stable:3.8.5'
     implementation 'org.encog:encog-core:3.4'

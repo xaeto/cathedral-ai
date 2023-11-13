@@ -78,7 +78,8 @@ public class NeuralAgent implements Agent {
         int edgeScore = 2 * Math.min(Math.min(x, 9 - x), Math.min(y, 9 - y));
 
         // Total position score
-        return centerScore - edgeScore;
+        var s = gameState.score().get(gameState.getCurrentPlayer());
+        return s * edgeScore;
     }
 
     public Placement findBestMove(List<Placement> possiblePlacements, Game gameState) {
@@ -93,14 +94,14 @@ public class NeuralAgent implements Agent {
         long count = buildingCount + countOccurences(state, owned);
         Placement best = null;
 
-        int maxScore = Integer.MIN_VALUE;
+        double maxScore = Double.MIN_VALUE;
 
         for (var placement : possiblePlacements){
             if(gameState.takeTurn(placement, true)){
                 var nextField = NeuralNetwork.GenerateBoardMatrix(gameState);
                 NeuralNetwork.printMatrix(nextField);
                 // long nextFieldCount = buildingCount + countOccurences(nextField, owned);
-                int score = calculatePositionScore(gameState);
+                double score = Heuristic.calculateZoneHeuristic(gameState);
                 System.out.println("Score: " + score);
                 if(score > maxScore){
                     best = placement;

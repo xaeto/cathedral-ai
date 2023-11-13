@@ -2,13 +2,13 @@ package org.example;
 
 import de.fhkiel.ki.cathedral.game.*;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.BackpropType;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.ui.model.stats.StatsListener;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -22,9 +22,9 @@ public class NeuralNetwork {
 
     public static MultiLayerConfiguration createConfiguration(int numInputs, int numHidden, int numOutputs) {
         return new NeuralNetConfiguration.Builder()
-                .seed(123)
-                .weightInit(WeightInit.SIGMOID_UNIFORM)
-                .updater(org.nd4j.linalg.learning.config.Adam.builder().learningRate(0.001).build())
+                .seed(new Random().nextInt(1, 1000000))
+                .weightInit(WeightInit.ZERO)
+                .updater(org.nd4j.linalg.learning.config.Adam.builder().learningRate(0.1).build())
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .activation(Activation.RELU)
                 .list()
@@ -37,8 +37,8 @@ public class NeuralNetwork {
                         .nIn(numHidden)
                         .nOut(numHidden)
                         .build())
-                .layer(new OutputLayer.Builder(LossFunctions.LossFunction.L2)
-                        .activation(Activation.SOFTMAX)  // Use softmax for multiclass classification
+                .layer(new OutputLayer.Builder(LossFunctions.LossFunction.SQUARED_LOSS)
+                        .activation(Activation.TANH)  // Use softmax for multiclass classification
                         .nIn(numHidden)
                         .nOut(numOutputs)
                         .build())
@@ -50,6 +50,11 @@ public class NeuralNetwork {
         network = new MultiLayerNetwork(cfg);
         load("./data.zip");
         network.init();
+        System.out.println(network.summary());
+    }
+
+    public void setListener(StatsListener listener){
+        this.network.setListeners(listener);
     }
 
     public INDArray predict(INDArray input) {
@@ -67,6 +72,7 @@ public class NeuralNetwork {
     public void load(String filePath) {
         try{
             network = ModelSerializer.restoreMultiLayerNetwork(new File(filePath));
+            System.out.println("Gradient: " + network.getGradient().gradient());
         } catch(Exception ex){
         }
     }
@@ -93,7 +99,7 @@ public class NeuralNetwork {
     public void fit(INDArray input, INDArray output){
         network.fit(input, output);
         System.out.println(network.feedForward());
-        save("./data.zip");
+        // save("./data.zip");
     }
 
     public long getNumOutputs() {
@@ -131,10 +137,10 @@ public class NeuralNetwork {
         for(int x = 0; x < 10; x++){
             for(int y = 0; y < 10; y++){
                 if(field[y][x] == Color.Black_Owned){
-                    matrix[y][x] = -1;
+                    matrix[y][x] = Color.Black_Owned.getId();
                 }
                 else if(field[y][x] == Color.White_Owned){
-                    matrix[y][x] = -2;
+                    matrix[y][x] = Color.White_Owned.getId();
                 } else {
                     matrix[y][x] = 0;
                 }
