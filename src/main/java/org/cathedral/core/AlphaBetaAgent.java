@@ -5,6 +5,7 @@ import de.fhkiel.ki.cathedral.game.Board;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
+import org.cathedrale.heuristics.Heuristic;
 
 import java.util.ArrayList;
 import java.util.List;

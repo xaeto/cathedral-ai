@@ -5,17 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c9b29cda-a329-42e0-bb9f-1ffdeefe9402" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/BoardPlacement.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/BoardPlacementScore.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/BuildingCombo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/BuildingVariant.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/CuteAgent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/EmulationTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/HeuristicInterface.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/StageBuildings.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/cathedrale/heuristics/AvoidGrayAreaHeuristic.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/cathedral/core/Heuristic.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/Heuristic.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/cathedral/core/WeightedPlacement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/WeightedPlacement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/cathedral/core/HeuristicalAgent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/cathedral/core/HeuristicalAgent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/cathedrale/heuristics/Heuristic.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/cathedrale/heuristics/Heuristic.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -106,27 +99,6 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/cathedral/core/CuteAgent.java</url>
-          <line>67</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/cathedral/core/StageBuildings.java</url>
-          <line>95</line>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/cathedral/core/StageBuildings.java</url>
-          <line>112</line>
-          <option name="timeStamp" value="19" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
