@@ -3,6 +3,7 @@ package org.cathedral.core;
 import de.fhkiel.ki.cathedral.game.Board;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
+import org.cathedrale.heuristics.Heuristic;
 
 import java.io.Serializable;
 import java.util.ArrayList;

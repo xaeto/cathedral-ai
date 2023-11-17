@@ -2,10 +2,9 @@ package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.*;
-import org.apache.commons.compress.archivers.zip.ScatterZipOutputStream;
+import org.cathedrale.heuristics.Heuristic;
 import org.example.NeuralNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.cpu.nativecpu.NDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
 import java.util.*;

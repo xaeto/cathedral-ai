@@ -1,6 +1,7 @@
 package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.game.Game;
+import org.cathedrale.heuristics.Heuristic;
 
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
