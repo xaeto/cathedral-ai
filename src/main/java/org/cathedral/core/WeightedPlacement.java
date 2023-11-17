@@ -10,6 +10,10 @@ public class WeightedPlacement extends Placement {
         super(position, direction, building);
     }
 
+    public WeightedPlacement(Placement placement) {
+        super(placement.position(), placement.direction(), placement.building());
+    }
+
     public WeightedPlacement(int x, int y, Direction direction, Building building) {
         super(x, y, direction, building);
     }
@@ -24,5 +28,9 @@ public class WeightedPlacement extends Placement {
 
     public void setPlacedBy(Color color){
         this.placedBy = color;
+    }
+
+    public Placement asPlacement(){
+        return (Placement)this;
     }
 }

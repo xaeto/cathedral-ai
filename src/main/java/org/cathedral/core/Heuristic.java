@@ -3,8 +3,6 @@ package org.cathedral.core;
 import de.fhkiel.ki.cathedral.game.*;
 
 import java.util.Arrays;
-import java.util.Random;
-import java.util.stream.Collectors;
 
 public class Heuristic {
     public static double calculatePlacementScore(Placement placement){
@@ -161,6 +159,9 @@ public class Heuristic {
 
         return 0;
     }
+    private static double normalize(double value, double min, double max) {
+        return 1 - ((value - min) / (max - min));
+    }
 
     private static double calculatePlayerHeuristic(Game game, Color color){
         var board = game.getBoard();
@@ -168,16 +169,9 @@ public class Heuristic {
         double capturedFields = countFieldsByPlayerId(board, color.subColor());
         double enemyFields = countFieldsByPlayerId(board, color.opponent());
         double capturedEnemyFields = countFieldsByPlayerId(board, color.opponent().subColor());
-        if (game.lastTurn() != null && game.lastTurn().getTurnNumber() <= 2) {
-            return calculateCenterHeuristic(game);
-        }
-        return playerFields
-                + capturedFields * 10
-                - enemyFields
-                - capturedEnemyFields
-                + buildingHeuristic(game.lastTurn().getAction())
-                + surroundEmptyFieldsHeuristic(game)
-                + edgeBuildingHeuristic(game.lastTurn().getAction());
+
+        double score = capturedFields;
+        return score;
     }
 
     private static double surroundEmptyFieldsHeuristic(Game game) {
