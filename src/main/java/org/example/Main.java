@@ -14,11 +14,10 @@ import java.io.File;
 public class Main {
     public static void main(String[] args) {
         CathedralGUI.start(new SaintAgent(), new CuteAgent(), new HeuristicalAgent (
-                new CenterHeuristic(10.0),
                 new ZoneHeuristic(150.0),
-                new BlockHeuristic(50.0),
+                new BlockHeuristic(100.0),
                 new GameScoreHeuristic(10.0),
-                new CathedralHeuristic(5.0)
+                new PlayerAreaHeuristic(7.5)
         ));
     }
 }

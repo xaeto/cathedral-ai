@@ -16,6 +16,14 @@ public class HeuristicalAgent implements Agent {
     }
 
     @Override
+    public String evaluateLastTurn(Game game) {
+        return "Score: " + Heuristic.normalize(Arrays.stream(heuristics).mapToDouble(c-> c.eval(game) * c.getWeight()).sum(),
+                -10000,
+                10000
+        );
+    }
+
+    @Override
     public Optional<Placement> calculateTurn(Game game, int i, int i1) {
         var buildings = game.getPlacableBuildings(game.getCurrentPlayer());
         var placements = new ArrayList<Placement>();
@@ -26,13 +34,14 @@ public class HeuristicalAgent implements Agent {
         double score = Double.NEGATIVE_INFINITY;
         Placement best = null;
         for(var placement : placements){
+            game.takeTurn(placement, false);
             double nextScore = Arrays.stream(heuristics).mapToDouble(c-> c.eval(game) * c.getWeight()).sum();
             if(nextScore >= score){
                 best = placement;
                 score = nextScore;
             }
+            game.undoLastTurn();
         }
-        System.out.println("Score: " + score);
         return Optional.of(best);
     }
 }

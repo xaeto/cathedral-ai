@@ -166,10 +166,9 @@ public abstract class Heuristic {
         return 0;
     }
 
-    private static double normalize(double value, double min, double max) {
+    public static double normalize(double value, double min, double max) {
         return 1 - ((value - min) / (max - min));
     }
-
 
     private static double placedInGrayArea(Game game){
         if(game.lastTurn().hasAction()){
