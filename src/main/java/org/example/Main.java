@@ -8,7 +8,8 @@ public class Main {
     public static void main(String[] args) {
         CathedralGUI.start(new SaintAgent(), new CuteAgent(), new HeuristicalAgent (
                 new ZoneHeuristic(150),
-                new GameScoreHeuristic(75)
-        ), new SmartAgent());
+                new GameScoreHeuristic(75),
+                new BlockHeuristic(75)
+        ), new SmartAgent(), new Frodo(), new Gandalf());
     }
 }

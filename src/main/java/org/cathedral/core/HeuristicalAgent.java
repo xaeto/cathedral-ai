@@ -34,31 +34,6 @@ public class HeuristicalAgent implements Agent {
         return placements;
     }
 
-    private double estimate(Game game, int depth){
-        var cp = game.copy();
-        cp.forfeitTurn();
-        if(depth == 0){
-            return Arrays.stream(heuristics).mapToDouble(c-> c.eval(cp) * c.getWeight()).sum();
-        }
-
-        Placement best = null;
-        double max = Double.NEGATIVE_INFINITY;
-        var turns = getPossiblePlacements(game);
-        for(var turn : turns){
-            cp.forfeitTurn();
-            cp.takeTurn(turn, false);
-            double score = Arrays.stream(heuristics).mapToDouble(c-> c.eval(game) * c.getWeight()).sum();
-            if(score >= max){
-                max = score;
-                best = turn;
-            }
-            cp.forfeitTurn();
-        }
-
-        cp.takeTurn(best, false);
-        return estimate(cp, depth - 1);
-    }
-
     @Override
     public Optional<Placement> calculateTurn(Game game, int i, int i1) {
         double score = Double.NEGATIVE_INFINITY;

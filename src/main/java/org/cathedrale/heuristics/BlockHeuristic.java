@@ -27,7 +27,7 @@ public class BlockHeuristic extends Heuristic{
             }
 
             if(nextScore < score){
-                return 100*(score * nextScore);
+                return 100*(score + nextScore);
             }
         }
 
