@@ -113,7 +113,7 @@ public class SmartAgent implements Agent {
     }
     @Override
     public Optional<Placement> calculateTurn(Game game, int i, int i1) {
-        var placement = findBestPlacement(game, 2);
+        var placement = findBestPlacement(game, 1);
         return Optional.of(placement);
     }
 }
