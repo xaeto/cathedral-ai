@@ -11,20 +11,15 @@ import java.util.*;
 
 public enum StageBuildings {
     CathedralBuilding(Building.Blue_Cathedral),
-    WhiteEarlyGameBuildings(),
-
-    WhiteMidGameBuildings(Building.White_Academy,
-            Building.White_Stable),
-
-    WhiteEndgameGameBuildings(Building.White_Square),
-
-    BlackEarlyGameBuildings(Building.Black_Academy,
-            Building.Black_Stable),
+    WhiteEarlyGameBuildings(Building.White_Academy, Building.White_Stable),
+    WhiteMidGameBuildings(Building.White_Academy, Building.White_Stable, Building.White_Bridge),
+    WhiteEndgameGameBuildings(Building.values()),
+    BlackEarlyGameBuildings(Building.Black_Academy, Building.Black_Stable),
 
     BlackMidGameBuildings(Building.Black_Academy,
             Building.Black_Stable),
 
-    BlackEndgameGameBuildings(Building.Black_Square),
+    BlackEndgameGameBuildings(Building.values()),
 
     None();
 

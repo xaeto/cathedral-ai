@@ -13,21 +13,12 @@ public class BlockHeuristic extends Heuristic{
             var placement = game.lastTurn().copy().getAction();
             game.undoLastTurn();
 
-            double score = countFieldsByPlayerId(game.getBoard(), game.getCurrentPlayer().subColor());
+            double playerScore = countFieldsByPlayerId(game.getBoard(), game.getCurrentPlayer().subColor());
             game.takeTurn(placement, false);
-            double nextScore = countFieldsByPlayerId(game.getBoard(), game.getCurrentPlayer().opponent().subColor());
+            double enemyScore = countFieldsByPlayerId(game.getBoard(), game.getCurrentPlayer().opponent().subColor());
 
-            if(score > nextScore){
-                return -(nextScore - score);
-            }
-
-            // blocked Score
-            if(score == nextScore){
-                return 10;
-            }
-
-            if(nextScore < score){
-                return 100*(score + nextScore);
+            if(playerScore > enemyScore + 3){
+                return 1;
             }
         }
 

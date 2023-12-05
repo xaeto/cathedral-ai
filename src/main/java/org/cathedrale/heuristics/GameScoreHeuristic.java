@@ -13,6 +13,6 @@ public class GameScoreHeuristic extends Heuristic {
         double enemy = game.score().getOrDefault(game.getCurrentPlayer(), 0);
 
         boolean better = enemy > player;
-        return better ? -player + enemy : -1;
+        return better ? 47 - player : -(47 - enemy);
     }
 }
