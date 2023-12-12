@@ -11,19 +11,16 @@ import java.util.*;
 
 public enum StageBuildings {
     CathedralBuilding(Building.Blue_Cathedral),
-    WhiteEarlyGameBuildings(Building.White_Academy, Building.White_Stable),
-    WhiteMidGameBuildings(Building.White_Academy, Building.White_Stable, Building.White_Bridge),
-    WhiteEndgameGameBuildings(Building.values()),
-    BlackEarlyGameBuildings(Building.Black_Academy, Building.Black_Stable),
-
-    BlackMidGameBuildings(Building.Black_Academy,
-            Building.Black_Stable),
-
-    BlackEndgameGameBuildings(Building.values()),
+    WhiteEarlyGameBuildings(Building.White_Academy, Building.White_Tower,Building.White_Infirmary,Building.White_Abbey,Building.White_Square, Building.White_Manor),
+    WhiteMidGameBuildings(Building.White_Abbey, Building.White_Square, Building.White_Bridge, Building.White_Inn),
+    WhiteEndgameGameBuildings(Building.White_Stable,Building.White_Tavern),
+    BlackEarlyGameBuildings(Building.Black_Academy, Building.Black_Tower,Building.Black_Infirmary,Building.Black_Abbey,Building.Black_Square, Building.Black_Manor),
+    BlackMidGameBuildings(Building.Black_Abbey, Building.Black_Square, Building.Black_Bridge, Building.Black_Inn),
+    BlackEndgameGameBuildings(Building.Black_Stable,Building.Black_Tavern),
 
     None();
-
     private final Building[] preferedBuildings;
+
     StageBuildings(Building... preferedBuildings){
         this.preferedBuildings = preferedBuildings;
     }

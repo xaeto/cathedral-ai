@@ -1,20 +1,26 @@
 package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.ai.Agent;
+import de.fhkiel.ki.cathedral.game.Board;
+import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 import io.aeron.shadow.org.HdrHistogram.DoubleLinearIterator;
 import org.board.fast.FastBoard;
+import org.cathedrale.heuristics.GameScoreHeuristic;
 import org.cathedrale.heuristics.Heuristic;
 import org.encog.util.Stopwatch;
+import org.nd4j.common.primitives.AtomicDouble;
 import org.work.Zobrist;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class HeuristicalAgent implements Agent {
+    private static final boolean DEBUG = true;
     private Heuristic[] heuristics;
-    private HashMap<Long, HashEntry> transpositionTable = new HashMap<>();
+    private ConcurrentHashMap<Long, HashEntry> transpositionTable = new ConcurrentHashMap<>();
 
     public HeuristicalAgent(Heuristic... heuristics) {
         this.heuristics = heuristics;
@@ -28,7 +34,7 @@ public class HeuristicalAgent implements Agent {
         );
     }
 
-    private List<Placement> getPossiblePlacements(Game game){
+    private List<Placement> getPossiblePlacements(final Game game){
         var buildings = game.getPlacableBuildings(game.getCurrentPlayer());
         var placements = new ArrayList<Placement>();
         for(var building : buildings){
@@ -38,115 +44,110 @@ public class HeuristicalAgent implements Agent {
         return placements;
     }
 
+    private List<Placement> getPossiblePlacements(Board board, Color color){
+        var buildings = board.getPlacableBuildings(color);
+        var placements = new ArrayList<Placement>();
+        for(var building : buildings){
+            placements.addAll(building.getPossiblePlacements(board));
+        }
 
-    private double negamax(final Game game, double alpha, double beta, int depth, Stopwatch watch){
-        if (depth == 0 || game.isFinished() || watch.getElapsedMilliseconds() >= 12000) {
-            long hash = Zobrist.hashify(game.getBoard());
-            if(transpositionTable.containsKey(hash)){
-                HashEntry entry = transpositionTable.get(hash);
-                return entry.getScore();
-            }
-            double score = Arrays.stream(heuristics).mapToDouble(c-> c.eval(game) * c.getWeight()).sum();
-            var entry = new HashEntry(score, depth, HashEntryType.EXACT);
-            transpositionTable.put(hash, entry);
-            return score;
+        return placements;
+    }
+
+    private double alphaBetaMin(Game game, double alpha, double beta, int depth) {
+        long hash = Zobrist.hashify(game);
+        HashEntry entry = transpositionTable.get(hash);
+        if (entry != null && entry.getDepth() >= depth) {
+            return entry.getScore();
+        }
+
+        if (depth == 0 || game.isFinished()) {
+            double eval = Arrays.stream(heuristics).mapToDouble(c -> c.eval(game) * c.getWeight()).sum();
+            transpositionTable.put(hash, new HashEntry(eval, depth, HashEntryType.EXACT));
+            return eval;
         }
 
         var placements = getPossiblePlacements(game);
-        double score = Double.NEGATIVE_INFINITY;
-        for(var placement : placements){
-            game.takeTurn(placement, false);
-            score = -negamax(game, -alpha, -beta, depth -1, watch);
+        for (var placement : placements) {
+            game.takeTurn(placement);
+            double eval = alphaBetaMax(game, alpha, beta, depth - 1);
             game.undoLastTurn();
-            if(score >= beta) return beta;
-            if(score > alpha) alpha = score;
+
+            beta = Math.min(beta, eval);
+
+            if (beta <= alpha) {
+                transpositionTable.put(hash, new HashEntry(beta, depth, HashEntryType.EXACT));
+                return beta; // Prune remaining branches
+            }
+        }
+        transpositionTable.put(hash, new HashEntry(beta, depth, HashEntryType.EXACT));
+        return beta;
+    }
+
+    private double alphaBetaMax(Game game, double alpha, double beta, int depth) {
+        long hash = Zobrist.hashify(game);
+        HashEntry entry = transpositionTable.get(hash);
+        if (entry != null && entry.getDepth() >= depth) {
+            return entry.getScore();
         }
 
+        if (depth == 0 || game.isFinished()) {
+            double eval = Arrays.stream(heuristics).mapToDouble(c -> c.eval(game) * c.getWeight()).sum();
+            transpositionTable.put(hash, new HashEntry(eval, depth, HashEntryType.EXACT));
+            return eval;
+        }
+
+        var placements = getPossiblePlacements(game);
+
+        for (var placement : placements) {
+            game.takeTurn(placement);
+            double eval = alphaBetaMin(game, alpha, beta, depth - 1);
+            game.undoLastTurn();
+
+            alpha = Math.max(alpha, eval);
+
+            if (beta <= alpha) {
+                // Store the result in the transposition table
+                transpositionTable.put(hash, new HashEntry(alpha, depth, HashEntryType.EXACT));
+                return beta; // Prune remaining branches
+            }
+        }
+
+        transpositionTable.put(hash, new HashEntry(alpha, depth, HashEntryType.EXACT));
         return alpha;
     }
 
-    private double maxValue(Game game, double alpha, double beta, int depth, Stopwatch watch) {
-        if (depth == 0 || game.isFinished() || watch.getElapsedMilliseconds() >= 12000) {
-            long hash = Zobrist.hashify(game.getBoard());
-            if(transpositionTable.containsKey(hash)){
-                HashEntry entry = transpositionTable.get(hash);
-                return entry.getScore();
-            }
-            double score = Arrays.stream(heuristics).mapToDouble(c-> c.eval(game) * c.getWeight()).sum();
-            var entry = new HashEntry(score, depth, HashEntryType.EXACT);
-            transpositionTable.put(hash, entry);
-            return score;
-        }
+    private Placement alphaBetaSearch(Game game, double alpha, double beta, int depth) {
+        var placements = getPossiblePlacements(game);
 
-        var stage = StageBuildings.getStage(game, game.getCurrentPlayer());
-        double max = Double.NEGATIVE_INFINITY;
-        var placements = stage.getPlaceableBuildings(game);
-        for (Placement placement : placements) {
-            game.takeTurn(placement, false);
-            max = Math.max(max, minValue(game, alpha, beta, depth - 1, watch));
+        Placement best = null;
+        for (var placement : placements) {
+            game.takeTurn(placement);
+            double eval = alphaBetaMin(game, alpha, beta, depth - 1);
             game.undoLastTurn();
-            if (max >= beta) {
-                return max;
-            }
-            alpha = Math.max(alpha, max);
-        }
-        return max;
-    }
 
-    private double minValue(Game game, double alpha, double beta, int depth, Stopwatch watch) {
-        if (depth == 0 || game.isFinished() || watch.getElapsedMilliseconds() >= 12000) {
-            long hash = Zobrist.hashify(game.getBoard());
-            if(transpositionTable.containsKey(hash)){
-                HashEntry entry = transpositionTable.get(hash);
-                return entry.getScore();
+            if (eval >= alpha) {
+                alpha = eval;
+                best = placement;
             }
-            double score = Arrays.stream(heuristics).mapToDouble(c-> c.eval(game) * c.getWeight()).sum();
-            var entry = new HashEntry(score, depth, HashEntryType.EXACT);
-            transpositionTable.put(hash, entry);
-            return score;
         }
-        double min = Double.POSITIVE_INFINITY;
-        var stage = StageBuildings.getStage(game, game.getCurrentPlayer());
-        var placements = stage.getPlaceableBuildings(game);
 
-        for (Placement placement : placements.subList(0, placements.size()/(game.lastTurn().getTurnNumber() + 1))) {
-            game.takeTurn(placement, false);
-            min = Math.min(min, maxValue(game, alpha, beta, depth - 1, watch));
-            game.undoLastTurn();
-            if (min <= alpha) {
-                return min;
-            }
-            beta = Math.min(beta, min);
-        }
-        return min;
+        return best;
     }
 
     @Override
     public Optional<Placement> calculateTurn(Game game, int i, int i1) {
-        var stage = StageBuildings.getStage(game, game.getCurrentPlayer());
-        var placements = stage.getPlaceableBuildings(game);
-        double score = -1000;
-        Placement best = null;
+        Placement best = alphaBetaSearch(game, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 2);
 
-        var watch = new Stopwatch();
-        watch.start();
-        for(int depth = 1; depth < 10 || watch.getElapsedMilliseconds() >= 12000; ++depth){
-            if(watch.getElapsedMilliseconds() >= 12000)
-                break;
-            System.out.println("Current Depth: " + (depth));
-            for (var placement : placements) {
-                if(watch.getElapsedMilliseconds() >= 12000)
-                    break;
-                game.takeTurn(placement, false);
-                double eval = maxValue(game, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth, watch);
-                if(eval >= score){
-                    best = placement;
-                }
-                game.undoLastTurn();
+        if (DEBUG) {
+            game.takeTurn(best);
+            for (var heuristic : this.heuristics) {
+                double s = heuristic.eval(game) * heuristic.getWeight();
+                System.out.println(heuristic.getClass().getName() + " : " + s);
             }
+            game.undoLastTurn();
         }
-        watch.stop();
 
-        return Optional.of(best);
+        return Optional.ofNullable(best);
     }
 }

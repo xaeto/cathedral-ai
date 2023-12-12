@@ -107,40 +107,40 @@ public class Frodo implements Agent {
     }
 
     public List<PlacementWithBoardScore> giveitback(List<PlacementWithBoardScore> lastTurn, int whosturn, Color currentPlayer, GameStage gameStage){
-            List<PlacementWithBoardScore> newTurn = new ArrayList<>();
+        List<PlacementWithBoardScore> newTurn = new ArrayList<>();
 
-            for (PlacementWithBoardScore entry : lastTurn) {
-                List<PlacementWithBoard> Placements = new ArrayList<>();
+        for (PlacementWithBoardScore entry : lastTurn) {
+            List<PlacementWithBoard> Placements = new ArrayList<>();
 
-                if (whosturn == 0){//OpponentTurn
-                    Placements = simulatePlacements(entry.PlacewithBoard().board, currentPlayer, gameStage);
+            if (whosturn == 0){//OpponentTurn
+                Placements = simulatePlacements(entry.PlacewithBoard().board, currentPlayer, gameStage);
 
+            }
+            else{
+                Placements = simulatePlacements(entry.PlacewithBoard().board, currentPlayer.opponent(), gameStage);
+
+            }
+            PlacementWithBoard hilf =null;
+            int opponentScore;
+            int BestopponentScore = Integer.MIN_VALUE;
+            for (PlacementWithBoard opponentPlacement : Placements) { // searches for best Play by the opponent
+                if(opponentPlacement.board==null){
+                    System.out.println("Cry");
+                }
+                if (whosturn == 0) {//OpponentTurn
+                    opponentScore = evaluateBoard(opponentPlacement.board, currentPlayer);
                 }
                 else{
-                    Placements = simulatePlacements(entry.PlacewithBoard().board, currentPlayer.opponent(), gameStage);
-
+                    opponentScore = evaluateBoard(opponentPlacement.board, currentPlayer.opponent());
                 }
-                PlacementWithBoard hilf =null;
-                int opponentScore;
-                int BestopponentScore = Integer.MIN_VALUE;
-                for (PlacementWithBoard opponentPlacement : Placements) { // searches for best Play by the opponent
-                    if(opponentPlacement.board==null){
-                        System.out.println("Cry");
-                    }
-                    if (whosturn == 0) {//OpponentTurn
-                         opponentScore = evaluateBoard(opponentPlacement.board, currentPlayer);
-                    }
-                    else{
-                         opponentScore = evaluateBoard(opponentPlacement.board, currentPlayer.opponent());
-                    }
-                    if (opponentScore > BestopponentScore) {
-                        BestopponentScore = opponentScore;
-                        hilf = opponentPlacement;
-                    }
+                if (opponentScore > BestopponentScore) {
+                    BestopponentScore = opponentScore;
+                    hilf = opponentPlacement;
                 }
-                newTurn.add(new PlacementWithBoardScore(hilf, BestopponentScore));
+            }
+            newTurn.add(new PlacementWithBoardScore(hilf, BestopponentScore));
         }
-            return newTurn;
+        return newTurn;
     }
 
     public List<PlacementWithBoardScore> reflect_on_your_choices (List<List<PlacementWithBoardScore>> theList, List<PlacementWithBoardScore> lastTurns, int whosturn ){    //reflect on your choices
@@ -151,18 +151,18 @@ public class Frodo implements Agent {
         }
         System.out.println("board2");
         List<PlacementWithBoardScore> bestTurnsplayer =new ArrayList<>();
-    bestTurnsplayer = theList.get(0);
-    for (PlacementWithBoardScore entry : bestTurnsplayer) {
-        PlacementWithBoardScore entry2 = lastTurns.get(bestTurnsplayer.indexOf(entry));
-        switch(whosturn){
-            case 0:
-                bestTurnsplayer.set(bestTurnsplayer.indexOf(entry), new PlacementWithBoardScore(entry.PlacewithBoard, entry.score + entry2.score));
-                break;
-            case 1:
-                bestTurnsplayer.set(bestTurnsplayer.indexOf(entry), new PlacementWithBoardScore(entry.PlacewithBoard, entry.score - entry2.score));
+        bestTurnsplayer = theList.get(0);
+        for (PlacementWithBoardScore entry : bestTurnsplayer) {
+            PlacementWithBoardScore entry2 = lastTurns.get(bestTurnsplayer.indexOf(entry));
+            switch(whosturn){
+                case 0:
+                    bestTurnsplayer.set(bestTurnsplayer.indexOf(entry), new PlacementWithBoardScore(entry.PlacewithBoard, entry.score + entry2.score));
+                    break;
+                case 1:
+                    bestTurnsplayer.set(bestTurnsplayer.indexOf(entry), new PlacementWithBoardScore(entry.PlacewithBoard, entry.score - entry2.score));
+            }
         }
-    }
-    return bestTurnsplayer;
+        return bestTurnsplayer;
     }
     @Override
     public String evaluateLastTurn(Game game) {

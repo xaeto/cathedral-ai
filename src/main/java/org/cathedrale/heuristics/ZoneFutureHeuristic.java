@@ -2,16 +2,15 @@ package org.cathedrale.heuristics;
 
 import de.fhkiel.ki.cathedral.game.Game;
 
-public class GameStateHeuristic extends Heuristic {
-
-    public GameStateHeuristic(double weight) {
+public class ZoneFutureHeuristic extends Heuristic {
+    public ZoneFutureHeuristic(double weight) {
         super(weight);
     }
 
     @Override
     public double eval(Game game) {
-        var turn = game.lastTurn().copy().getAction();
-        game.undoLastTurn();
+        var cp = game.copy();
+        cp.forfeitTurn();
         return 0;
     }
 }
