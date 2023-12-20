@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BlockNewHeuristic extends Heuristic {
+    private ZoneHeuristic zoneHeuristic = new ZoneHeuristic(1.0);
     public BlockNewHeuristic(double weight) {
         super(weight);
     }
@@ -17,11 +18,14 @@ public class BlockNewHeuristic extends Heuristic {
 
         gameCopy.undoLastTurn();
         gameCopy.forfeitTurn();
-        double previousEnemyZoneScore = HeuristicsHelper.countFieldById(gameCopy.getBoard(), gameCopy.getCurrentPlayer().subColor());
+        double previousEnemyZoneScore = zoneHeuristic.eval(gameCopy);
 
+        // enemy turn
         var possibleEnemyPlacements = HeuristicsHelper.getPossiblePlacements(gameCopy);
         List<PlacementScore> zoneCreatingPlacements = new ArrayList<>();
 
+        // iterate over enemy turns
+        // get all turns that generate a new zone
         for(var enemyPlacement : possibleEnemyPlacements){
             gameCopy.takeTurn(enemyPlacement, false);
             double score = HeuristicsHelper.countFieldById(gameCopy.getBoard(), gameCopy.getCurrentPlayer().opponent().subColor());
@@ -34,18 +38,21 @@ public class BlockNewHeuristic extends Heuristic {
 
         // forfeit enemy turn
         gameCopy.forfeitTurn();
+        // retake our turn
         gameCopy.takeTurn(turn, false);
 
         double avoidedEnemyScore = 0;
+        int count = 0;
         for(var zoneCreatingPlacement : zoneCreatingPlacements){
             if(gameCopy.takeTurn(zoneCreatingPlacement.placement(), false)){
                 gameCopy.undoLastTurn();
             } else {
                 // avoided turn
-                avoidedEnemyScore += 1;
+                avoidedEnemyScore += zoneCreatingPlacement.score();
+                count ++;
             }
         }
 
-        return avoidedEnemyScore;
+        return avoidedEnemyScore / (count + 1);
     }
 }

@@ -8,9 +8,9 @@ public class Main {
     public static void main(String[] args) {
         CathedralGUI.start(new SaintAgent(), new CuteAgent(), new HeuristicalAgent (
                 new LargeBuildingHeuristic(4),
-                new BlockNewHeuristic(0.5),
+                new BlockHeuristic(5),
                 new AvoidGrayAreaHeuristic(2),
-                new ZoneHeuristic(2)
+                new ZoneHeuristic(1)
         ), new SmartAgent(), new Frodo(), new Gandalf());
     }
 }

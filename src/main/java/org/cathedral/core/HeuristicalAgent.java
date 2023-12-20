@@ -21,7 +21,11 @@ public class HeuristicalAgent implements Agent {
     private static final boolean DEBUG = true;
     private Heuristic[] heuristics;
     private ConcurrentHashMap<Long, HashEntry> transpositionTable = new ConcurrentHashMap<>();
+    private ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private Future<Double> prefetch;
 
+    private static int minHits = 0;
+    private static int maxHits = 0;
     public HeuristicalAgent(Heuristic... heuristics) {
         this.heuristics = heuristics;
     }
@@ -58,6 +62,7 @@ public class HeuristicalAgent implements Agent {
         long hash = Zobrist.hashify(game);
         HashEntry entry = transpositionTable.get(hash);
         if (entry != null && entry.getDepth() >= depth) {
+            minHits++;
             return entry.getScore();
         }
 
@@ -88,6 +93,7 @@ public class HeuristicalAgent implements Agent {
         long hash = Zobrist.hashify(game);
         HashEntry entry = transpositionTable.get(hash);
         if (entry != null && entry.getDepth() >= depth) {
+            maxHits++;
             return entry.getScore();
         }
 
@@ -132,29 +138,71 @@ public class HeuristicalAgent implements Agent {
             }
         }
 
+        System.out.println("Done with alpha beta search");
+        return best;
+    }
+
+    private double negamax(final Game game, double alpha, double beta, int depth){
+        long hash = Zobrist.hashify(game);
+        HashEntry entry = transpositionTable.get(hash);
+        if (entry != null && entry.getDepth() >= depth) {
+            maxHits++;
+            return entry.getScore();
+        }
+
+        if(depth == 0 || game.isFinished()){
+            return Arrays.stream(heuristics).mapToDouble(c -> c.eval(game) * c.getWeight()).sum();
+        }
+
+        double score;
+        var placements = getPossiblePlacements(game);
+        for(var placement : placements){
+            game.takeTurn(placement, false);
+            score = -negamax(game, -beta, -alpha, depth -1);
+            if(score > alpha){
+                alpha = score;
+                if(alpha >= beta){
+                    break;
+                }
+            }
+        }
+
+        return alpha;
+    }
+
+    private Placement negamaxPlacement(final Game game, int depth){
+        var placements = getPossiblePlacements(game);
+        double alpha = Double.NEGATIVE_INFINITY;
+        double beta = Double.POSITIVE_INFINITY;
+
+        double score = Double.NEGATIVE_INFINITY;
+        Placement best = null;
+        for(var placement : placements){
+            game.takeTurn(placement);
+            double eval = negamax(game, -beta, -alpha, depth - 1);
+            if(eval >= score){
+                score = eval;
+                best = placement;
+            }
+            game.undoLastTurn();
+        }
+
         return best;
     }
 
     @Override
     public Optional<Placement> calculateTurn(Game game, int i, int i1) {
-        int depth = game.lastTurn().getTurnNumber() < 4 ? 1 : 2;
-        System.out.println("Depth: " + depth);
-        //Placement best = alphaBetaSearch(game, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth);
-        var placements = getPossiblePlacements(game);
-        Placement best = null;
-        double score = Double.NEGATIVE_INFINITY;
-
-        for (var placement : placements) {
-            game.takeTurn(placement);
-            double eval = Arrays.stream(heuristics).mapToDouble(c -> c.eval(game) * c.getWeight()).sum();
-            game.undoLastTurn();
-
-            if (eval >= score) {
-                score = eval;
-                best = placement;
+        int depth = 2;
+        if(prefetch != null){
+            try {
+                prefetch.get();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
             }
         }
-
+        Placement best = alphaBetaSearch(game, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth); //negamaxPlacement(game, depth);
         if (DEBUG) {
             game.takeTurn(best);
             for (var heuristic : this.heuristics) {
@@ -164,6 +212,14 @@ public class HeuristicalAgent implements Agent {
             game.undoLastTurn();
         }
 
+        var cp = game.copy();
+        cp.takeTurn(best, false);
+        prefetch = executorService.submit(() -> negamax(cp, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 1));
+
+
+        System.out.println("Max-Hits: " + maxHits + " Min-Hits: " + minHits);
+        maxHits = 0;
+        minHits = 0;
         return Optional.ofNullable(best);
     }
 }

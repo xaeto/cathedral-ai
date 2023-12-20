@@ -40,7 +40,6 @@ public class BlockHeuristic extends Heuristic{
         int unclaimedSpaces = 0;
 
         var field = board.getField();
-
         for (int row = 0; row < 10; row++) {
             for (int col = 0; col < 10; col++) {
                 if (field[row][col] == Color.None) {
