@@ -8,7 +8,7 @@ public class LargeBuildingHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         if(game.lastTurn().hasAction()){
             var score = game.lastTurn().getAction().building().score();
             return score;

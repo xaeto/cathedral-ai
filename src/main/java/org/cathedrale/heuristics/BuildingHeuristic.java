@@ -8,7 +8,7 @@ public class BuildingHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(final Game game) {
+    public double eval(final Game game, int depth) {
         if(game.lastTurn().hasAction()){
             return game.lastTurn().getAction().building().score();
         }

@@ -9,7 +9,7 @@ public class PlayerAreaHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         return HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer()) * (game.lastTurn().hasAction() ? game.lastTurn().getAction().building().score() : 1);
     }
 }

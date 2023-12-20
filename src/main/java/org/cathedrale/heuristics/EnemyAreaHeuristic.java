@@ -8,7 +8,7 @@ public class EnemyAreaHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         return HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer().opponent());
     }
 }

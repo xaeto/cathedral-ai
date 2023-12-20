@@ -8,7 +8,7 @@ public class GameScoreHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         double player = game.score().getOrDefault(game.getCurrentPlayer().opponent(), 47);
         double enemy = game.score().getOrDefault(game.getCurrentPlayer(), 47);
 

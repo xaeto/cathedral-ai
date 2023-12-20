@@ -10,7 +10,7 @@ public class ZoneHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         Placement turn = game.lastTurn().copy().getAction();
         game.undoLastTurn();
         double previous = HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer().subColor());
@@ -22,6 +22,6 @@ public class ZoneHeuristic extends Heuristic {
         if(diff < 3){
             diff = 0;
         }
-        return diff;
+        return diff * (depth + 1) / 13;
     }
 }

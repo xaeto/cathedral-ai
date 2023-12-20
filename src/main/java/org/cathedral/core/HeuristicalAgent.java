@@ -1,14 +1,18 @@
 package org.cathedral.core;
 
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Ordering;
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.Board;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 import io.aeron.shadow.org.HdrHistogram.DoubleLinearIterator;
+import it.unimi.dsi.fastutil.doubles.DoubleComparator;
 import org.board.fast.FastBoard;
 import org.cathedrale.heuristics.GameScoreHeuristic;
 import org.cathedrale.heuristics.Heuristic;
+import org.cathedrale.heuristics.ZoneHeuristic;
 import org.encog.util.Stopwatch;
 import org.nd4j.common.primitives.AtomicDouble;
 import org.work.Zobrist;
@@ -18,21 +22,24 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class HeuristicalAgent implements Agent {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private Heuristic[] heuristics;
     private ConcurrentHashMap<Long, HashEntry> transpositionTable = new ConcurrentHashMap<>();
     private ExecutorService executorService = Executors.newFixedThreadPool(4);
     private Future<Double> prefetch;
-
     private static int minHits = 0;
     private static int maxHits = 0;
+    private static int cutoffs = 0;
+    private static int evaluated = 0;
+    private static int cached = 0;
+
     public HeuristicalAgent(Heuristic... heuristics) {
         this.heuristics = heuristics;
     }
 
     @Override
     public String evaluateLastTurn(Game game) {
-        return "Score: " + Heuristic.normalize(Arrays.stream(heuristics).mapToDouble(c-> c.eval(game) * c.getWeight()).sum(),
+        return "Score: " + Heuristic.normalize(Arrays.stream(heuristics).mapToDouble(c-> c.eval(game, 1) * c.getWeight()).sum(),
                 -10000,
                 10000
         );
@@ -59,74 +66,56 @@ public class HeuristicalAgent implements Agent {
     }
 
     private double alphaBetaMin(Game game, double alpha, double beta, int depth) {
-        long hash = Zobrist.hashify(game);
-        HashEntry entry = transpositionTable.get(hash);
-        if (entry != null && entry.getDepth() >= depth) {
-            minHits++;
-            return entry.getScore();
-        }
-
         if (depth == 0 || game.isFinished()) {
-            double eval = Arrays.stream(heuristics).mapToDouble(c -> c.eval(game) * c.getWeight()).sum();
-            transpositionTable.put(hash, new HashEntry(eval, depth, HashEntryType.EXACT));
+            double eval = Arrays.stream(heuristics).mapToDouble(c -> c.eval(game, depth) * c.getWeight()).sum();
+            evaluated++;
             return eval;
         }
 
+        double currentLowest = beta;
         var placements = getPossiblePlacements(game);
         for (var placement : placements) {
             game.takeTurn(placement);
-            double eval = alphaBetaMax(game, alpha, beta, depth - 1);
+            currentLowest = Math.min(currentLowest, alphaBetaMax(game, alpha, beta, depth - 1));
             game.undoLastTurn();
 
-            beta = Math.min(beta, eval);
-
-            if (beta <= alpha) {
-                transpositionTable.put(hash, new HashEntry(beta, depth, HashEntryType.EXACT));
-                return beta; // Prune remaining branches
+            if (currentLowest <= alpha) {
+                this.cutoffs++;
+                return currentLowest; // Prune remaining branches
             }
         }
-        transpositionTable.put(hash, new HashEntry(beta, depth, HashEntryType.EXACT));
-        return beta;
+        return currentLowest;
     }
 
     private double alphaBetaMax(Game game, double alpha, double beta, int depth) {
-        long hash = Zobrist.hashify(game);
-        HashEntry entry = transpositionTable.get(hash);
-        if (entry != null && entry.getDepth() >= depth) {
-            maxHits++;
-            return entry.getScore();
-        }
-
         if (depth == 0 || game.isFinished()) {
-            double eval = Arrays.stream(heuristics).mapToDouble(c -> c.eval(game) * c.getWeight()).sum();
-            transpositionTable.put(hash, new HashEntry(eval, depth, HashEntryType.EXACT));
+            double eval = Arrays.stream(heuristics).mapToDouble(c -> c.eval(game, depth) * c.getWeight()).sum();
+            evaluated++;
             return eval;
         }
 
+        double currentHighest = alpha;
         var placements = getPossiblePlacements(game);
-
         for (var placement : placements) {
             game.takeTurn(placement);
-            double eval = alphaBetaMin(game, alpha, beta, depth - 1);
+            currentHighest = Math.max(currentHighest, alphaBetaMin(game, alpha, beta, depth - 1));
             game.undoLastTurn();
 
-            alpha = Math.max(alpha, eval);
-
-            if (beta <= alpha) {
+            if (currentHighest >= beta) {
                 // Store the result in the transposition table
-                transpositionTable.put(hash, new HashEntry(alpha, depth, HashEntryType.EXACT));
-                return beta; // Prune remaining branches
+                this.cutoffs++;
+                return currentHighest; // Prune remaining branches
             }
         }
-
-        transpositionTable.put(hash, new HashEntry(alpha, depth, HashEntryType.EXACT));
-        return alpha;
+        return currentHighest;
     }
 
     private Placement alphaBetaSearch(Game game, double alpha, double beta, int depth) {
         var placements = getPossiblePlacements(game);
 
         Placement best = null;
+        var zoneHeuristic = new ZoneHeuristic(1.0);
+        double previous =  zoneHeuristic.eval(game, 1);
         for (var placement : placements) {
             game.takeTurn(placement);
             double eval = alphaBetaMin(game, alpha, beta, depth - 1);
@@ -151,7 +140,7 @@ public class HeuristicalAgent implements Agent {
         }
 
         if(depth == 0 || game.isFinished()){
-            return Arrays.stream(heuristics).mapToDouble(c -> c.eval(game) * c.getWeight()).sum();
+            return Arrays.stream(heuristics).mapToDouble(c -> c.eval(game, depth) * c.getWeight()).sum();
         }
 
         double score;
@@ -206,7 +195,7 @@ public class HeuristicalAgent implements Agent {
         if (DEBUG) {
             game.takeTurn(best);
             for (var heuristic : this.heuristics) {
-                double s = heuristic.eval(game) * heuristic.getWeight();
+                double s = heuristic.eval(game, 1) * heuristic.getWeight();
                 System.out.println(heuristic.getClass().getName() + " : " + s);
             }
             game.undoLastTurn();
@@ -216,10 +205,12 @@ public class HeuristicalAgent implements Agent {
         cp.takeTurn(best, false);
         prefetch = executorService.submit(() -> negamax(cp, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 1));
 
-
-        System.out.println("Max-Hits: " + maxHits + " Min-Hits: " + minHits);
+        System.out.println("Total Boards: " + evaluated + " Cutoffs: " + cutoffs);
+        evaluated = 0;
         maxHits = 0;
         minHits = 0;
+        cutoffs = 0;
+        cached = 0;
         return Optional.ofNullable(best);
     }
 }

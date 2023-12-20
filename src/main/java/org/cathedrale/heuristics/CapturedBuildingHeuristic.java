@@ -8,7 +8,7 @@ public class CapturedBuildingHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         var turn = game.lastTurn().copy().getAction();
         game.undoLastTurn();
 

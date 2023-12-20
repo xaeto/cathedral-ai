@@ -10,7 +10,7 @@ public class CombinedHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         return 0;
     }
 }

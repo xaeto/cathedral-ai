@@ -8,7 +8,7 @@ public class CornerHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         if(!game.lastTurn().hasAction())
             return 0;
         var placement = game.lastTurn().getAction();

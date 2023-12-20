@@ -10,7 +10,7 @@ public class CathedralHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         boolean hasCathedral = game.getBoard().getPlacedBuildings().stream().anyMatch(c-> c.building() == Building.Blue_Cathedral);
         if(game.getCurrentPlayer() == Color.Black){
             return hasCathedral ? 0 : 1;

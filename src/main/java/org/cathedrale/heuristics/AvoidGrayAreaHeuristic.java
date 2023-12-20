@@ -9,7 +9,7 @@ public class AvoidGrayAreaHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         if(game.lastTurn().hasAction()){
             var action = game.lastTurn().copy().getAction();
             game.undoLastTurn();

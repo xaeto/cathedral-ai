@@ -8,7 +8,7 @@ public class ZoneFutureHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         var cp = game.copy();
         cp.forfeitTurn();
         return 0;

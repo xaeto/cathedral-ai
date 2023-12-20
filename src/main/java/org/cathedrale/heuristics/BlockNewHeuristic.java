@@ -12,13 +12,13 @@ public class BlockNewHeuristic extends Heuristic {
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         var turn = game.lastTurn().copy().getAction();
         var gameCopy = game.copy();
 
         gameCopy.undoLastTurn();
         gameCopy.forfeitTurn();
-        double previousEnemyZoneScore = zoneHeuristic.eval(gameCopy);
+        double previousEnemyZoneScore = zoneHeuristic.eval(gameCopy, depth + 1);
 
         // enemy turn
         var possibleEnemyPlacements = HeuristicsHelper.getPossiblePlacements(gameCopy);

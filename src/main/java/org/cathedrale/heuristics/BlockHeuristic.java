@@ -12,12 +12,12 @@ public class BlockHeuristic extends Heuristic{
     }
 
     @Override
-    public double eval(Game game) {
+    public double eval(Game game, int depth) {
         Board board = game.getBoard();
         Color enemy = game.getCurrentPlayer();
 
         double score = blockOpponent(board, enemy);
-        return score;
+        return score * depth;
     }
 
     private int countPlayerBuildings(Board board, Color player) {

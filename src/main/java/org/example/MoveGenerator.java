@@ -18,7 +18,7 @@ public class MoveGenerator {
         }
 
         ZoneHeuristic zoneHeuristic = new ZoneHeuristic(1);
-        double zoneScore = zoneHeuristic.eval(game);
+        double zoneScore = zoneHeuristic.eval(game, 1);
 
         double threshold = 0.8;
         return zoneScore > threshold;

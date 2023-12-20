@@ -13,7 +13,7 @@ public abstract class Heuristic {
     }
 
     public double getWeight(){return this.weight;}
-    public abstract double eval(final Game game);
+    public abstract double eval(final Game game, int depth);
 
     public static int countFieldsByPlayerId(Board board, Color color){
         var field = board.getField();
