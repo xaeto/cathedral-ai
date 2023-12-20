@@ -1,9 +1,9 @@
 package org.cathedrale.heuristics;
 
 import de.fhkiel.ki.cathedral.game.Game;
-import de.fhkiel.ki.cathedral.game.Placement;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class BlockNewHeuristic extends Heuristic {
     public BlockNewHeuristic(double weight) {
@@ -12,55 +12,40 @@ public class BlockNewHeuristic extends Heuristic {
 
     @Override
     public double eval(Game game) {
-        // our turn has already been done
-        var cp = game.copy();
-        Placement ourTurn = game.lastTurn().copy().getAction();
-        cp.undoLastTurn();
+        var turn = game.lastTurn().copy().getAction();
+        var gameCopy = game.copy();
 
-        // forfeit our turn
-        cp.forfeitTurn();
+        gameCopy.undoLastTurn();
+        gameCopy.forfeitTurn();
+        double previousEnemyZoneScore = HeuristicsHelper.countFieldById(gameCopy.getBoard(), gameCopy.getCurrentPlayer().subColor());
 
-        var enemyPlacements = HeuristicsHelper.getPossiblePlacements(cp);
-        double previousEnemyScore = HeuristicsHelper.countFieldById(cp.getBoard(), cp.getCurrentPlayer());
+        var possibleEnemyPlacements = HeuristicsHelper.getPossiblePlacements(gameCopy);
+        List<PlacementScore> zoneCreatingPlacements = new ArrayList<>();
 
-        var enemyPlacementsToBlock = new ArrayList<Placement>();
-
-        for(var enemyPlacement : enemyPlacements){
-            cp.takeTurn(enemyPlacement, false);
-            double eval = HeuristicsHelper.countFieldById(cp.getBoard(), cp.getCurrentPlayer().opponent());
-            double diff = previousEnemyScore - eval;
-
-            if(diff >= 3){
-                enemyPlacementsToBlock.add(enemyPlacement);
+        for(var enemyPlacement : possibleEnemyPlacements){
+            gameCopy.takeTurn(enemyPlacement, false);
+            double score = HeuristicsHelper.countFieldById(gameCopy.getBoard(), gameCopy.getCurrentPlayer().opponent().subColor());
+            if(score > previousEnemyZoneScore){
+                var scoredPlacement = new PlacementScore(enemyPlacement, score);
+                zoneCreatingPlacements.add(scoredPlacement);
             }
-            cp.undoLastTurn();
+            gameCopy.undoLastTurn();
         }
 
-        if(enemyPlacementsToBlock.isEmpty()){
-            return -1;
-        }
+        // forfeit enemy turn
+        gameCopy.forfeitTurn();
+        gameCopy.takeTurn(turn, false);
 
-        cp.forfeitTurn();
-        cp.takeTurn(ourTurn, false);
-
-        double blocked = 0;
-        for(var enemyPlacement : enemyPlacementsToBlock){
-            boolean take = cp.takeTurn(enemyPlacement, false);
-            if(!take){
-                cp.undoLastTurn();
-                cp.forfeitTurn();
-                cp.takeTurn(enemyPlacement, false);
-
-                double eval = HeuristicsHelper.countFieldById(cp.getBoard(), cp.getCurrentPlayer().opponent());
-                double diff = previousEnemyScore - eval;
-                blocked += diff;
-
-                cp.undoLastTurn();
+        double avoidedEnemyScore = 0;
+        for(var zoneCreatingPlacement : zoneCreatingPlacements){
+            if(gameCopy.takeTurn(zoneCreatingPlacement.placement(), false)){
+                gameCopy.undoLastTurn();
             } else {
-                cp.undoLastTurn();
+                // avoided turn
+                avoidedEnemyScore += 1;
             }
         }
 
-        return blocked;
+        return avoidedEnemyScore;
     }
 }

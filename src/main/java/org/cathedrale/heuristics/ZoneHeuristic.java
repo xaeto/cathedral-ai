@@ -18,10 +18,10 @@ public class ZoneHeuristic extends Heuristic {
 
         double after = HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer().opponent().subColor());
         double diff = after - previous;
+
         if(diff < 3){
             diff = 0;
         }
-
         return diff;
     }
 }

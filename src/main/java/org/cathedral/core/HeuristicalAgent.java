@@ -137,7 +137,23 @@ public class HeuristicalAgent implements Agent {
 
     @Override
     public Optional<Placement> calculateTurn(Game game, int i, int i1) {
-        Placement best = alphaBetaSearch(game, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 2);
+        int depth = game.lastTurn().getTurnNumber() < 4 ? 1 : 2;
+        System.out.println("Depth: " + depth);
+        //Placement best = alphaBetaSearch(game, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth);
+        var placements = getPossiblePlacements(game);
+        Placement best = null;
+        double score = Double.NEGATIVE_INFINITY;
+
+        for (var placement : placements) {
+            game.takeTurn(placement);
+            double eval = Arrays.stream(heuristics).mapToDouble(c -> c.eval(game) * c.getWeight()).sum();
+            game.undoLastTurn();
+
+            if (eval >= score) {
+                score = eval;
+                best = placement;
+            }
+        }
 
         if (DEBUG) {
             game.takeTurn(best);
