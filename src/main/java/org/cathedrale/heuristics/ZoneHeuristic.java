@@ -11,7 +11,17 @@ public class ZoneHeuristic extends Heuristic {
 
     @Override
     public double eval(Game game) {
-        double zone = HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer().opponent().subColor());
-        return zone < 3 ? -1 : zone;
+        Placement turn = game.lastTurn().copy().getAction();
+        game.undoLastTurn();
+        double previous = HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer().subColor());
+        game.takeTurn(turn, false);
+
+        double after = HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer().opponent().subColor());
+        double diff = after - previous;
+        if(diff < 3){
+            diff = 0;
+        }
+
+        return diff;
     }
 }

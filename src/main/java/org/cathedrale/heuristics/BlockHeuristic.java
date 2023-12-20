@@ -77,6 +77,9 @@ public class BlockHeuristic extends Heuristic{
             return 0;
 
         double score = 1.0 - (double) opponentUnclaimedSpaces / opponentBuildings;
+        if(score < 0){
+            score = 0;
+        }
         return score;
     }
 }

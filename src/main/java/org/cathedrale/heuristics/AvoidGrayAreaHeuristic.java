@@ -1,5 +1,6 @@
 package org.cathedrale.heuristics;
 
+import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 
 public class AvoidGrayAreaHeuristic extends Heuristic {
@@ -17,21 +18,18 @@ public class AvoidGrayAreaHeuristic extends Heuristic {
 
             var field = game.getBoard().getField();
 
-            boolean isGray = false;
+            int countInGray = 0;
             for(var pos : action.form()){
                 int dx = x + pos.x();
                 int dy = y + pos.y();
 
-                if(field[dy][dx] == game.getCurrentPlayer().subColor()){
-                    isGray = true;
-                    break;
+                if(field[dy][dx] != Color.None){
+                    countInGray--;
                 }
             }
 
             game.takeTurn(action, false);
-            if(isGray){
-                return -5;
-            }
+            return countInGray;
         }
 
         return 0;
