@@ -4,14 +4,15 @@ import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 import org.cathedrale.heuristics.Heuristic;
 import org.cathedrale.heuristics.HeuristicsHelper;
-import org.cathedrale.heuristics.ZoneHeuristic;
+import org.nd4j.common.primitives.AtomicDouble;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class Negamax extends Evaluator {
-    public Negamax(Heuristic... heuristics) {
+public class NegamaxParallel extends Evaluator {
+    public NegamaxParallel(Heuristic... heuristics) {
         super(heuristics);
     }
 
@@ -78,23 +79,24 @@ public class Negamax extends Evaluator {
     @Override
     public Placement eval(Game game) {
         List<Placement> possiblePlacements = HeuristicsHelper.getPossiblePlacements(game);
-        Placement best = null;
 
-        double alpha = -10000;
-        double beta = 10000;
+        AtomicReference<Placement> best = new AtomicReference<>(null);
+        AtomicDouble alpha = new AtomicDouble(-10000);
+        AtomicDouble beta = new AtomicDouble(10000);
 
-        for (Placement placement : possiblePlacements) {
-            game.takeTurn(placement, false);
-            double eval = -negamax(game, DEPTH - 1, -beta, -alpha, false);
-            game.undoLastTurn();
-            if (eval >= alpha) {
-                alpha = eval;
-                best = placement;
+        possiblePlacements.parallelStream().forEach(placement -> {
+            var cp = game.copy();
+            cp.takeTurn(placement, false);
+            double eval = -negamax(cp, DEPTH - 1, -beta.get(), -alpha.get(), false);
+
+            if (eval >= alpha.get()) {
+                alpha.set(eval);
+                best.set(placement);
             }
 
-            beta = Math.min(beta, eval);  // Update beta
-        }
+            beta.set(Math.min(beta.get(), eval));
+        });
 
-        return best;
+        return best.get();
     }
 }
