@@ -24,13 +24,13 @@ public class AlphaBetaTransposition extends Evaluator {
         HashEntry entry = maximize ? transpositionTableMax.get(hash) : transpositionTableMin.get(hash);
         if(maximize){
             if (entry != null && entry.getDepth() >= depth) {
-                total++;
+                this.total.incrementAndGet();
                 return entry.getScore();
             }
         }
 
         if(depth == 0 || game.isFinished()){
-            this.total++;
+            this.total.incrementAndGet();
             double score = Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, 1) * c.getWeight()).sum();
             entry = new HashEntry(score, depth, HashEntryType.EXACT);
             if(maximize){
@@ -52,12 +52,12 @@ public class AlphaBetaTransposition extends Evaluator {
                     alpha = Math.max(alpha, maxEval);
                     game.undoLastTurn();
                     if (beta <= alpha) {
-                        this.cut++;
+                        this.cut.incrementAndGet();
                         break;
                     }
                 }
             }
-            entry = new HashEntry(maxEval, depth, HashEntryType.EXACT);
+            entry = new HashEntry(maxEval, depth, HashEntryType.LOWER);
             this.transpositionTableMax.putIfAbsent(hash, entry);
             return maxEval;
         } else {
@@ -68,12 +68,12 @@ public class AlphaBetaTransposition extends Evaluator {
                     beta = Math.min(beta, minEval);
                     game.undoLastTurn();
                     if(beta <= alpha){
-                        this.cut++;
+                        this.cut.incrementAndGet();
                         break;
                     }
                 }
             }
-            entry = new HashEntry(minEval, depth, HashEntryType.EXACT);
+            entry = new HashEntry(maxEval, depth, HashEntryType.UPPER);
             this.transpositionTableMin.putIfAbsent(hash, entry);
             return minEval;
         }

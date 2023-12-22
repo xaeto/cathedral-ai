@@ -1,5 +1,6 @@
 package org.cathedrale.heuristics;
 
+import de.fhkiel.ki.cathedral.game.Building;
 import de.fhkiel.ki.cathedral.game.Game;
 
 public class LargeBuildingHeuristic extends Heuristic {
@@ -10,8 +11,10 @@ public class LargeBuildingHeuristic extends Heuristic {
     @Override
     public double eval(Game game, int depth) {
         if(game.lastTurn().hasAction()){
-            var score = game.lastTurn().getAction().building().score();
-            return score;
+            if(game.lastTurn().getAction().building() != Building.Blue_Cathedral){
+                var score = game.lastTurn().getAction().form().size();
+                return score;
+            }
         }
         return 0;
     }

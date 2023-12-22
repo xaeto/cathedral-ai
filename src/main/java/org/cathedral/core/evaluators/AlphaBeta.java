@@ -15,7 +15,7 @@ public class AlphaBeta extends Evaluator {
 
     private double alphaBeta(Game game, int depth, double alpha, double beta, boolean maximize){
         if(depth == 0 || game.isFinished()){
-            this.total++;
+            this.total.incrementAndGet();
             return Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, 1) * c.getWeight()).sum();
         }
 
@@ -30,7 +30,7 @@ public class AlphaBeta extends Evaluator {
                     alpha = Math.max(alpha, maxEval);
                     game.undoLastTurn();
                     if (beta <= alpha) {
-                        this.cut++;
+                        this.cut.incrementAndGet();
                         break;
                     }
                 }
@@ -44,7 +44,7 @@ public class AlphaBeta extends Evaluator {
                     beta = Math.min(beta, minEval);
                     game.undoLastTurn();
                     if(beta <= alpha){
-                        this.cut++;
+                        this.cut.incrementAndGet();
                         break;
                     }
                 }

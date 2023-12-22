@@ -39,16 +39,13 @@ public class NegamaxParallel extends Evaluator {
 
     private double negamax(Game game, int depth, double alpha, double beta, boolean allowNullMove){
         if(depth <= 0 || game.isFinished()){
-            return Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, 1) * c.getWeight()).sum();
+            return Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, depth) * c.getWeight()).sum();
         }
-
         if (allowNullMove) {
             game.forfeitTurn();
-            // Make null move
-            double nullMoveScore = -negamax(game, depth - 2, -beta, -alpha, false);
+            double nullMoveScore = -negamax(game, depth - 1, -beta, -alpha, false);
             game.undoLastTurn();
 
-            // Check if null move pruning is applicable
             if (nullMoveScore >= beta) {
                 return beta; // Beta cutoff
             }
@@ -56,7 +53,6 @@ public class NegamaxParallel extends Evaluator {
 
         double max = Double.NEGATIVE_INFINITY;
         List<Placement> possiblePlacements = HeuristicsHelper.getPossiblePlacements(game);
-        possiblePlacements.sort(Comparator.comparingInt(placement -> -placement.building().score()));
         for(Placement placement : possiblePlacements){
             game.takeTurn(placement, false);
             double score = -negamax(game, depth -1, -beta, -alpha, true);
@@ -81,8 +77,8 @@ public class NegamaxParallel extends Evaluator {
         List<Placement> possiblePlacements = HeuristicsHelper.getPossiblePlacements(game);
 
         AtomicReference<Placement> best = new AtomicReference<>(null);
-        AtomicDouble alpha = new AtomicDouble(-10000);
-        AtomicDouble beta = new AtomicDouble(10000);
+        AtomicDouble alpha = new AtomicDouble(Double.NEGATIVE_INFINITY);
+        AtomicDouble beta = new AtomicDouble(Double.POSITIVE_INFINITY);
 
         possiblePlacements.parallelStream().forEach(placement -> {
             var cp = game.copy();

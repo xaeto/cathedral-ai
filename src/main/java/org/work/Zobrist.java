@@ -3,6 +3,7 @@ package org.work;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.fhkiel.ki.cathedral.game.Board;
+import de.fhkiel.ki.cathedral.game.Building;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 import org.cathedral.core.HashEntry;
@@ -13,20 +14,16 @@ import java.util.HashMap;
 import java.util.Random;
 
 public class Zobrist {
-    private static final int BOARD_SIZE = 10; // Beispiel: Spielfeldgröße 10x10
-    private static final int NUM_PIECES = 23; // Beispiel: 6 verschiedene Figurentypen in 2 Farben
-
-    private static long[][][] zobristKeys = new long[BOARD_SIZE][BOARD_SIZE][NUM_PIECES];
+    private static final int BOARD_SIZE = 100; // Beispiel: Spielfeldgröße 10x10
+    private static long[][] zobristTable = new long[BOARD_SIZE][23];
 
     // Initialisiere die Zobrist-Hash-Keys mit zufälligen Werten
     static {
         Random random = new Random();
         random.setSeed(1);
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                for (int k = 0; k < NUM_PIECES; k++) {
-                    zobristKeys[i][j][k] = random.nextLong();
-                }
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < 23; j++) {
+                zobristTable[i][j] = random.nextLong();
             }
         }
     }
@@ -55,22 +52,13 @@ public class Zobrist {
     public static long hashify(final Game game) {
         var field = game.getBoard().getField();
         long hash = 0;
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                int piece = field[i][j].getId();
-                if (piece != 0) {
-                    // XOR des Zobrist-Keys für das Stück an Position (i, j) im Spielfeld
-                    hash ^= zobristKeys[i][j][piece - 1];
-                }
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                int pieceType = field[i][j].getId();
+                hash ^= zobristTable[i * 10 + j][pieceType];
             }
         }
         return hash;
-    }
-    public void update(Board board){
-        var field = Arrays.stream(board.getField()).flatMap(Arrays::stream).mapToInt(c-> c.getId()).toArray();
-        for(int i = 0; i < 10*10;++i){
-            hash ^= field[i];
-        }
     }
 
     public static void save(HashMap<Long, HashEntry> transpositionTable) {

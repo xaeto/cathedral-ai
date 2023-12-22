@@ -11,16 +11,17 @@ public class ZoneHeuristic extends Heuristic {
 
     @Override
     public double eval(Game game, int depth) {
-        Placement turn = game.lastTurn().copy().getAction();
-        game.undoLastTurn();
-        double previous = HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer().subColor());
-        game.takeTurn(turn, false);
-
+        Placement placement = game.lastTurn().copy().getAction();
         double after = HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer().opponent().subColor());
-        double diff = after - previous;
-
-        if(diff <= 3 && diff > 0){
-            diff = -diff;
+        Game previousState = game.copy();
+        previousState.undoLastTurn();
+        double previous = HeuristicsHelper.countFieldById(previousState.getBoard(), previousState.getCurrentPlayer().subColor());
+        double diff = previous - after;
+        if(diff == 0){
+            return -0.5;
+        }
+        if(diff <= 3){
+            return -1;
         }
         return diff;
     }
