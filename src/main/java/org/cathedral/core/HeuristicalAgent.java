@@ -114,8 +114,6 @@ public class HeuristicalAgent implements Agent {
         var placements = getPossiblePlacements(game);
 
         Placement best = null;
-        var zoneHeuristic = new ZoneHeuristic(1.0);
-        double previous =  zoneHeuristic.eval(game, 1);
         for (var placement : placements) {
             game.takeTurn(placement);
             double eval = alphaBetaMin(game, alpha, beta, depth - 1);
@@ -191,7 +189,7 @@ public class HeuristicalAgent implements Agent {
                 throw new RuntimeException(e);
             }
         }
-        Placement best = alphaBetaSearch(game, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth); //negamaxPlacement(game, depth);
+        Placement best = alphaBetaSearch(game, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, depth);
         if (DEBUG) {
             game.takeTurn(best);
             for (var heuristic : this.heuristics) {

@@ -2,6 +2,7 @@ package org.cathedrale.heuristics;
 
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
+import de.fhkiel.ki.cathedral.game.Placement;
 
 public class AvoidGrayAreaHeuristic extends Heuristic {
     public AvoidGrayAreaHeuristic(double weight) {
@@ -11,25 +12,15 @@ public class AvoidGrayAreaHeuristic extends Heuristic {
     @Override
     public double eval(Game game, int depth) {
         if(game.lastTurn().hasAction()){
-            var action = game.lastTurn().copy().getAction();
-            game.undoLastTurn();
-            int x = action.x();
-            int y = action.y();
+            Placement lastTurn = game.lastTurn().copy().getAction();
+            var cp = game.copy();
 
-            var field = game.getBoard().getField();
+            int x = lastTurn.x();
+            int y = lastTurn.y();
 
-            int countInGray = 0;
-            for(var pos : action.form()){
-                int dx = x + pos.x();
-                int dy = y + pos.y();
-
-                if(field[dy][dx] != Color.None){
-                    countInGray--;
-                }
-            }
-
-            game.takeTurn(action, false);
-            return countInGray;
+            cp.undoLastTurn();
+            boolean placedInZone = cp.getBoard().getField()[y][x] == game.getCurrentPlayer().opponent().subColor();
+            return placedInZone ? -1 : 0;
         }
 
         return 0;

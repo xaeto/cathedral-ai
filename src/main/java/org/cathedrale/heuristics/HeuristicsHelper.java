@@ -6,6 +6,7 @@ import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class HeuristicsHelper {
@@ -24,7 +25,7 @@ public class HeuristicsHelper {
     }
 
     public static List<Placement> getPossiblePlacements(final Game game){
-        var buildings = game.getPlacableBuildings(game.getCurrentPlayer());
+        var buildings = game.getBoard().getPlacableBuildings(game.getCurrentPlayer());
         var placements = new ArrayList<Placement>();
         for(var building : buildings){
             placements.addAll(building.getPossiblePlacements(game.getBoard()));

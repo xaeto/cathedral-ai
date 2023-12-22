@@ -19,9 +19,9 @@ public class ZoneHeuristic extends Heuristic {
         double after = HeuristicsHelper.countFieldById(game.getBoard(), game.getCurrentPlayer().opponent().subColor());
         double diff = after - previous;
 
-        if(diff < 3){
-            diff = 0;
+        if(diff <= 3 && diff > 0){
+            diff = -diff;
         }
-        return diff * (depth + 1) / 13;
+        return diff;
     }
 }
