@@ -1,25 +1,15 @@
 package org.cathedral.core;
 
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Ordering;
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.Board;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
-import io.aeron.shadow.org.HdrHistogram.DoubleLinearIterator;
-import it.unimi.dsi.fastutil.doubles.DoubleComparator;
-import org.board.fast.FastBoard;
-import org.cathedrale.heuristics.GameScoreHeuristic;
-import org.cathedrale.heuristics.Heuristic;
-import org.cathedrale.heuristics.ZoneHeuristic;
-import org.encog.util.Stopwatch;
-import org.nd4j.common.primitives.AtomicDouble;
+import org.cathedral.heuristics.Heuristic;
 import org.work.Zobrist;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class HeuristicalAgent implements Agent {
     private static final boolean DEBUG = false;

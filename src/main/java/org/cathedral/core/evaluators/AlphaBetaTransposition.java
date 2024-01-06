@@ -4,8 +4,8 @@ import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 import org.cathedral.core.HashEntry;
 import org.cathedral.core.HashEntryType;
-import org.cathedrale.heuristics.Heuristic;
-import org.cathedrale.heuristics.HeuristicsHelper;
+import org.cathedral.heuristics.Heuristic;
+import org.cathedral.heuristics.HeuristicsHelper;
 import org.work.Zobrist;
 
 import java.util.Arrays;

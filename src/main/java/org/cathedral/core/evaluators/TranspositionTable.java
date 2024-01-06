@@ -20,4 +20,18 @@ public class TranspositionTable {
 
         this.transpositionTable.putIfAbsent(hash, entry);
     }
+
+    public void updateEntry(long hash, double score, int depth, HashEntryType type) {
+        HashEntry existingEntry = transpositionTable.get(hash);
+
+        if (existingEntry == null || depth >= existingEntry.getDepth()) {
+            // Update or add entry if the new information is more relevant
+            HashEntry newEntry = new HashEntry(score, depth, type);
+            this.transpositionTable.put(hash, newEntry);
+        }
+    }
+
+    public void reset(){
+        this.transpositionTable.clear();
+    }
 }

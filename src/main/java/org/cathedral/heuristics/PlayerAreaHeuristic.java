@@ -1,7 +1,6 @@
-package org.cathedrale.heuristics;
+package org.cathedral.heuristics;
 
 import de.fhkiel.ki.cathedral.game.Game;
-import org.cathedrale.heuristics.HeuristicsHelper;
 
 public class PlayerAreaHeuristic extends Heuristic {
     public PlayerAreaHeuristic(double weight) {

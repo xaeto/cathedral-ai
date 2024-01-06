@@ -2,8 +2,8 @@ package org.cathedral.core.evaluators;
 
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
-import org.cathedrale.heuristics.Heuristic;
-import org.cathedrale.heuristics.HeuristicsHelper;
+import org.cathedral.heuristics.Heuristic;
+import org.cathedral.heuristics.HeuristicsHelper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,14 +59,17 @@ public class AlphaBeta extends Evaluator {
         Placement best = null;
 
         List<Placement> possiblePlacements = HeuristicsHelper.getPossiblePlacements(game);
+        double alpha = Double.NEGATIVE_INFINITY;
+        double beta = Double.POSITIVE_INFINITY;
         for(Placement placement : possiblePlacements){
             if(game.takeTurn(placement, false)){
-                double eval = Math.max(score, alphaBeta(game, DEPTH - 1, Double.NEGATIVE_INFINITY, Double. POSITIVE_INFINITY, false));
+                double eval = Math.max(score, alphaBeta(game, DEPTH - 1, alpha, beta, false));
                 if(eval >= score){
                     score = eval;
                     best = placement;
                 }
                 game.undoLastTurn();
+                beta = Math.min(beta, eval);
             }
         }
 

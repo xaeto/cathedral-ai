@@ -4,8 +4,8 @@ import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 import org.cathedral.core.HashEntry;
 import org.cathedral.core.HashEntryType;
-import org.cathedrale.heuristics.Heuristic;
-import org.cathedrale.heuristics.HeuristicsHelper;
+import org.cathedral.heuristics.Heuristic;
+import org.cathedral.heuristics.HeuristicsHelper;
 import org.nd4j.common.primitives.AtomicDouble;
 import org.work.Zobrist;
 
@@ -28,6 +28,8 @@ public class NegamaxParallelTransposition extends Evaluator {
             return score;
         }
 
+        long hash = Zobrist.hashify(game);
+
         HashEntry transpositionEntry = transpositionTable.get(game);
         if (transpositionEntry != null) {
             if (transpositionEntry.getDepth() == depth && transpositionEntry.getType() == HashEntryType.EXACT) {
@@ -44,6 +46,7 @@ public class NegamaxParallelTransposition extends Evaluator {
 
                 if (alpha >= beta) {
                     this.cut.incrementAndGet();
+                    transpositionTable.updateEntry(hash, beta, depth, HashEntryType.UPPER);
                     return entryScore; // Beta cutoff
                 }
             }
@@ -52,13 +55,13 @@ public class NegamaxParallelTransposition extends Evaluator {
         List<Placement> possiblePlacements = HeuristicsHelper.getPossiblePlacements(game);
         for(Placement placement : possiblePlacements){
             game.takeTurn(placement, false);
-            long hash = Zobrist.hashify(game);
+            long shash = Zobrist.hashify(game);
             double score = -negamax(game, depth -1, -beta, -alpha, true);
 
             game.undoLastTurn();
 
             if (score >= beta) {
-                transpositionTable.add(hash, score, depth, HashEntryType.LOWER);
+                transpositionTable.updateEntry(shash, beta, depth, HashEntryType.UPPER);
                 this.cut.incrementAndGet();
                 return score;
             }
@@ -78,28 +81,28 @@ public class NegamaxParallelTransposition extends Evaluator {
         List<Placement> possiblePlacements = HeuristicsHelper.getPossiblePlacements(game);
 
         AtomicReference<Placement> best = new AtomicReference<>(null);
-        AtomicDouble alpha = new AtomicDouble(Double.NEGATIVE_INFINITY);
-        AtomicDouble beta = new AtomicDouble(Double.POSITIVE_INFINITY);
 
-        for(int depth = 1; depth < 4; depth++){
+        for(int depth = 1; depth < 3; depth++){
             final int d = depth;
+            AtomicDouble alpha = new AtomicDouble(Double.NEGATIVE_INFINITY);
+            AtomicDouble beta = new AtomicDouble(Double.POSITIVE_INFINITY);
             System.out.println("Depth: " + d);
             possiblePlacements.parallelStream().forEach(placement -> {
                 var cp = game.copy();
                 cp.takeTurn(placement, false);
-                double eval = -negamax(cp, d, -beta.get(), -alpha.get(), false);
+                double eval = -negamax(cp, d, alpha.get(), beta.get(), false);
 
                 if (eval >= alpha.get()) {
                     alpha.set(eval);
                     best.set(placement);
                 }
-
                 beta.set(Math.min(beta.get(), eval));
             });
         }
 
         printStats();
         resetStats();
+        transpositionTable.reset();
         return best.get();
     }
 }

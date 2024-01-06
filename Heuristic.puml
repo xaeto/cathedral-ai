@@ -1,0 +1,7 @@
+@startuml
+abstract class org.cathedral.heuristics.Heuristic {
+- double weight
++ double getWeight()
++ {abstract}double eval(Game,int)
+}
+@enduml

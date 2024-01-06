@@ -62,7 +62,6 @@ public class NeuralNetwork {
     }
 
     public void save(String filePath) {
-        System.out.println("Saving network model.");
         try{
             ModelSerializer.writeModel(network, filePath, true);
         } catch(Exception ex){
@@ -72,7 +71,6 @@ public class NeuralNetwork {
     public void load(String filePath) {
         try{
             network = ModelSerializer.restoreMultiLayerNetwork(new File(filePath));
-            System.out.println("Gradient: " + network.getGradient().gradient());
         } catch(Exception ex){
         }
     }
@@ -98,7 +96,7 @@ public class NeuralNetwork {
 
     public void fit(INDArray input, INDArray output){
         network.fit(input, output);
-        System.out.println(network.feedForward());
+         //System.out.println(network.feedForward());
         // save("./data.zip");
     }
 
@@ -136,7 +134,22 @@ public class NeuralNetwork {
 
         for(int x = 0; x < 10; x++){
             for(int y = 0; y < 10; y++){
-                matrix[y][x] = field[y][x].getId();
+                if(field[y][x] == Color.Black_Owned){
+                    matrix[y][x] = Color.Black_Owned.getId();
+                }
+                else if(field[y][x] == Color.White_Owned){
+                    matrix[y][x] = Color.White_Owned.getId();
+                } else {
+                    matrix[y][x] = 0;
+                }
+            }
+        }
+
+        for(Placement p: game.getBoard().getPlacedBuildings()){
+            for(Position pos: p.form()){
+                int x = p.x() + pos.x();
+                int y = p.y() + pos.y();
+                matrix[y][x] = p.building().getId();
             }
         }
         return matrix;

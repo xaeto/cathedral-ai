@@ -2,8 +2,8 @@ package org.cathedral.core.evaluators;
 
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
-import org.cathedrale.heuristics.Heuristic;
-import org.cathedrale.heuristics.HeuristicsHelper;
+import org.cathedral.heuristics.Heuristic;
+import org.cathedral.heuristics.HeuristicsHelper;
 import org.nd4j.common.primitives.AtomicDouble;
 
 import java.util.Arrays;
@@ -16,60 +16,36 @@ public class NegamaxParallel extends Evaluator {
         super(heuristics);
     }
 
-    private List<Placement> generateInitialKillerMoves(Game game, int depth) {
-        List<Placement> possiblePlacements = HeuristicsHelper.getPossiblePlacements(game);
-
-        // Evaluate all possible moves and sort them based on the evaluation
-        possiblePlacements.sort((move1, move2) -> {
-            game.takeTurn(move1, false);
-            double eval1 = -negamax(game, depth - 1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, true);
-            game.undoLastTurn();
-
-            game.takeTurn(move2, false);
-            double eval2 = -negamax(game, depth - 1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, true);
-            game.undoLastTurn();
-
-            return Double.compare(eval2, eval1); // Descending order
-        });
-
-        // Return the top N moves as initial killer moves
-        int numKillerMoves = Math.min(2, possiblePlacements.size()); // You can adjust this value
-        return possiblePlacements.subList(0, numKillerMoves);
-    }
-
-    private double negamax(Game game, int depth, double alpha, double beta, boolean allowNullMove){
+    private double negamax(Game game, int depth, double alpha, double beta){
         if(depth <= 0 || game.isFinished()){
-            return Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, depth) * c.getWeight()).sum();
-        }
-        if (allowNullMove) {
-            game.forfeitTurn();
-            double nullMoveScore = -negamax(game, depth - 1, -beta, -alpha, false);
-            game.undoLastTurn();
-
-            if (nullMoveScore >= beta) {
-                return beta; // Beta cutoff
-            }
+            this.total.incrementAndGet();
+            return Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, 1) * c.getWeight()).sum();
         }
 
-        double max = Double.NEGATIVE_INFINITY;
-        List<Placement> possiblePlacements = HeuristicsHelper.getPossiblePlacements(game);
-        for(Placement placement : possiblePlacements){
+        double score = Double.NEGATIVE_INFINITY;
+        var moves = HeuristicsHelper.getPossiblePlacements(game);
+        moves.sort(Comparator.comparingDouble(placement -> {
             game.takeTurn(placement, false);
-            double score = -negamax(game, depth -1, -beta, -alpha, true);
+            double s = Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, 1) * c.getWeight()).sum();
             game.undoLastTurn();
-
-            if (score >= beta) {
-                return score; // Beta cutoff
+            return -s;
+        }));
+        for(var move : moves){
+            game.takeTurn(move, false);
+            double eval = -negamax(game, depth -1, -beta, -alpha);
+            if(eval > score){
+                score = eval;
             }
-
-            if (score > max) {
-                max = score;
+            if(score > alpha){
+                alpha = score;
             }
-
-            alpha = Math.max(alpha, score);
+            game.undoLastTurn();
+            if(alpha >= beta){
+                cut.incrementAndGet();
+                return alpha;
+            }
         }
-
-        return max;
+        return score;
     }
 
     @Override
@@ -83,14 +59,13 @@ public class NegamaxParallel extends Evaluator {
         possiblePlacements.parallelStream().forEach(placement -> {
             var cp = game.copy();
             cp.takeTurn(placement, false);
-            double eval = -negamax(cp, DEPTH - 1, -beta.get(), -alpha.get(), false);
+            double eval = -negamax(cp, 2, -beta.get(), -alpha.get());
 
             if (eval >= alpha.get()) {
                 alpha.set(eval);
                 best.set(placement);
             }
-
-            beta.set(Math.min(beta.get(), eval));
+            //beta.set(Math.min(beta.get(), eval));  // Update beta
         });
 
         return best.get();

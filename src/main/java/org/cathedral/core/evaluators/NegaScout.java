@@ -1,48 +1,49 @@
 package org.cathedral.core.evaluators;
 
-import de.fhkiel.ki.cathedral.game.*;
+import de.fhkiel.ki.cathedral.game.Game;
+import de.fhkiel.ki.cathedral.game.Placement;
 import org.cathedral.heuristics.Heuristic;
 import org.cathedral.heuristics.HeuristicsHelper;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
-public class Negamax extends Evaluator {
+public class NegaScout extends Evaluator {
 
-    public Negamax(Heuristic... heuristics) {
+    public NegaScout(Heuristic... heuristics) {
         super(heuristics);
     }
 
-    private double negamax(Game game, int depth, double alpha, double beta){
+    private double negaScout(Game game, int depth, double alpha, double beta){
         if(depth <= 0 || game.isFinished()){
             this.total.incrementAndGet();
             return Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, 1) * c.getWeight()).sum();
         }
 
         double score = Double.NEGATIVE_INFINITY;
+        double n = beta;
         var moves = HeuristicsHelper.getPossiblePlacements(game);
-        moves.sort(Comparator.comparingDouble(placement -> {
-            game.takeTurn(placement, false);
-            double s = Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, 1) * c.getWeight()).sum();
-            game.undoLastTurn();
-            return -s;
-        }));
         for(var move : moves){
             game.takeTurn(move, false);
-            double eval = -negamax(game, depth -1, -beta, -alpha);
-            if(eval > score){
-                score = eval;
+            double current = -negaScout(game, depth -1, -n, -alpha);
+            if(current > score){
+                if(n == beta || depth <= 2){
+                    score = current;
+                } else {
+                    score = -negaScout(game, depth -1, -beta, -current);
+                }
             }
+            game.undoLastTurn();
             if(score > alpha){
                 alpha = score;
             }
-            game.undoLastTurn();
             if(alpha >= beta){
                 cut.incrementAndGet();
                 return alpha;
             }
+            n = alpha + 1;
         }
+
         return score;
     }
 
@@ -50,19 +51,19 @@ public class Negamax extends Evaluator {
     public Placement eval(Game game) {
         Placement best = null;
         List<Placement> possiblePlacements = HeuristicsHelper.getPossiblePlacements(game);
+
         double alpha = Double.NEGATIVE_INFINITY;
         double beta = Double.POSITIVE_INFINITY;
-
-        for (Placement move : possiblePlacements) {
-            game.takeTurn(move, false);
-            double eval = -negamax(game, DEPTH - 1, -beta, -alpha);
-            // System.out.println("Eval: " + eval);
+        for(Placement placement : possiblePlacements){
+            game.takeTurn(placement, false);
+            double eval = negaScout(game, DEPTH, -beta, -alpha);
             game.undoLastTurn();
-
-            if (eval >= alpha) {
+            if(eval >= alpha){
                 alpha = eval;
-                best = move;
+                best = placement;
             }
+
+            // beta = Math.min(beta, eval);
         }
 
         printStats();

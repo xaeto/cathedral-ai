@@ -1,7 +1,7 @@
 package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.game.Game;
-import org.cathedrale.heuristics.Heuristic;
+import org.cathedral.heuristics.Heuristic;
 
 public class EvaluationRunnable implements Runnable {
     private final Heuristic[] heuristics;

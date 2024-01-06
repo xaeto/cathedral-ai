@@ -2,8 +2,8 @@ package org.cathedral.core.evaluators;
 
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
-import org.cathedrale.heuristics.Heuristic;
-import org.cathedrale.heuristics.HeuristicsHelper;
+import org.cathedral.heuristics.Heuristic;
+import org.cathedral.heuristics.HeuristicsHelper;
 
 import java.util.Arrays;
 import java.util.List;

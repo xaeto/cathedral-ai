@@ -3,8 +3,7 @@ package org.example;
 import de.fhkiel.ki.cathedral.game.Building;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
-import org.cathedrale.heuristics.HeuristicsHelper;
-import org.cathedrale.heuristics.ZoneHeuristic;
+import org.cathedral.heuristics.ZoneHeuristic;
 
 import java.util.ArrayList;
 import java.util.List;

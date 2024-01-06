@@ -1,13 +1,12 @@
-package org.cathedrale.heuristics;
+package org.cathedral.heuristics;
 
 import de.fhkiel.ki.cathedral.game.*;
 import org.cathedral.core.StageBuildings;
 
-import java.util.Arrays;
 import java.util.Comparator;
 
 public abstract class Heuristic {
-    private double weight;
+    private final double weight;
     public Heuristic(double weight){
         this.weight = weight;
     }
