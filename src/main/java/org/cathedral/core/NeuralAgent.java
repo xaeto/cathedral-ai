@@ -2,7 +2,8 @@ package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.*;
-import org.cathedrale.heuristics.Heuristic;
+import org.cathedral.heuristics.Heuristic;
+import org.cathedral.heuristics.HeuristicsHelper;
 import org.example.NeuralNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -12,14 +13,16 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class NeuralAgent implements Agent {
     private NeuralNetwork neuralNetwork;
+    private Heuristic[] heuristics;
     private static final double gamma = 0.9;
     @Override
     public String name(){
         return "NeuralAgent";
     }
 
-    public NeuralAgent(NeuralNetwork network){
+    public NeuralAgent(NeuralNetwork network, Heuristic... heuristics){
         this.neuralNetwork = network;
+        this.heuristics = heuristics;
     }
 
     private INDArray preprocessGameState(Game game){
@@ -58,27 +61,7 @@ public class NeuralAgent implements Agent {
     }
 
     private int calculatePositionScore(Game gameState) {
-        // Get the placement of interest (e.g., the last placement in the game)
-        Placement placement = gameState.lastTurn().getAction();
-
-        // Extract position coordinates
-        int x = placement.position().x();
-        int y = placement.position().y();
-
-        // Calculate the distance from the center
-        int center = 4;  // Center position
-        int distanceFromCenter = Math.abs(x - center) + Math.abs(y - center);
-
-        // Assign a higher score to placements closer to the center
-        // Adjust the weights based on your scoring criteria
-        int centerScore = 10 * (10 - distanceFromCenter);
-
-        // Assign a lower score to placements closer to the edges
-        int edgeScore = 2 * Math.min(Math.min(x, 9 - x), Math.min(y, 9 - y));
-
-        // Total position score
-        var s = gameState.score().get(gameState.getCurrentPlayer());
-        return s * edgeScore;
+        return (int)Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(gameState, 1) * c.getWeight()).sum();
     }
 
     public Placement findBestMove(List<Placement> possiblePlacements, Game gameState) {
@@ -100,7 +83,7 @@ public class NeuralAgent implements Agent {
                 var nextField = NeuralNetwork.GenerateBoardMatrix(gameState);
                 NeuralNetwork.printMatrix(nextField);
                 // long nextFieldCount = buildingCount + countOccurences(nextField, owned);
-                double score = Heuristic.calculateZoneHeuristic(gameState);
+                double score = HeuristicsHelper.countFieldById(gameState.getBoard(), gameState.getCurrentPlayer().opponent());
                 System.out.println("Score: " + score);
                 if(score > maxScore){
                     best = placement;
@@ -354,7 +337,6 @@ public class NeuralAgent implements Agent {
 
                 // Observe the reward
                 double reward = evaluateMove(placement, game);
-                System.out.println("Reward: "+ reward);
 
                 // Forward pass
                 INDArray input = preprocessGameState(game);
@@ -403,41 +385,41 @@ public class NeuralAgent implements Agent {
         return returns;
     }
 
-   // public Optional<Placement> calculateTurn(Game game, int i, int i1) {
-   //     List<Placement> possiblePlacements = new ArrayList<Placement>();
-   //     for(Building building : game.getPlacableBuildings(game.getCurrentPlayer())){
-   //         for(Direction direction : building.getTurnable().getPossibleDirections()){
-   //             for(int x = 0; x < 10; ++x){
-   //                 for(int y = 0; y < 10; ++y){
-   //                     var placement = new Placement(new Position(x,y), direction, building);
-   //                     if(game.takeTurn(placement, true)){
-   //                         possiblePlacements.add(placement);
-   //                         game.undoLastTurn();
-   //                     }
-   //                 }
-   //             }
-   //         }
-   //     }
+    // public Optional<Placement> calculateTurn(Game game, int i, int i1) {
+    //     List<Placement> possiblePlacements = new ArrayList<Placement>();
+    //     for(Building building : game.getPlacableBuildings(game.getCurrentPlayer())){
+    //         for(Direction direction : building.getTurnable().getPossibleDirections()){
+    //             for(int x = 0; x < 10; ++x){
+    //                 for(int y = 0; y < 10; ++y){
+    //                     var placement = new Placement(new Position(x,y), direction, building);
+    //                     if(game.takeTurn(placement, true)){
+    //                         possiblePlacements.add(placement);
+    //                         game.undoLastTurn();
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
 
-   //     INDArray input = preprocessGameState(game);
-   //     INDArray output = neuralNetwork.predict(input);
+    //     INDArray input = preprocessGameState(game);
+    //     INDArray output = neuralNetwork.predict(input);
 
-   //     int bestMoveIndex = processOutput(output);
+    //     int bestMoveIndex = processOutput(output);
 
-   //     try{
-   //         if (bestMoveIndex >= 0 && bestMoveIndex < possiblePlacements.size()) {
-   //             Placement bestPlacement = findBestMove(possiblePlacements, game);
-   //             trainNeuralNetwork(game);
-   //             return Optional.of(bestPlacement);
-   //         }
-   //     } finally {
-   //         if(game.isFinished()){
-   //             System.out.println("Done");
-   //         }
-   //     }
-   //     // Ensure the index corresponds to a valid placement
-   //     return Optional.empty();
-   // }
+    //     try{
+    //         if (bestMoveIndex >= 0 && bestMoveIndex < possiblePlacements.size()) {
+    //             Placement bestPlacement = findBestMove(possiblePlacements, game);
+    //             trainNeuralNetwork(game);
+    //             return Optional.of(bestPlacement);
+    //         }
+    //     } finally {
+    //         if(game.isFinished()){
+    //             System.out.println("Done");
+    //         }
+    //     }
+    //     // Ensure the index corresponds to a valid placement
+    //     return Optional.empty();
+    // }
 
     private void trainNeuralNetwork(Game game) {
         INDArray input = preprocessGameState(game);
@@ -474,9 +456,9 @@ public class NeuralAgent implements Agent {
                 int whiteScore = scores.get(Color.White);
 
                 if (blackScore > whiteScore) {
-                    return Color.Black;
-                } else if (whiteScore > blackScore) {
                     return Color.White;
+                } else if (whiteScore > blackScore) {
+                    return Color.Black;
                 } else {
                     return null;  // It's a draw
                 }

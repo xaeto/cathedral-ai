@@ -1,7 +1,7 @@
 package org.cathedral.core;
 
 import de.fhkiel.ki.cathedral.game.*;
-import org.cathedrale.heuristics.Heuristic;
+import org.cathedral.heuristics.Heuristic;
 
 import java.util.ArrayList;
 

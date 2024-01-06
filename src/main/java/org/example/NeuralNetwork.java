@@ -62,7 +62,6 @@ public class NeuralNetwork {
     }
 
     public void save(String filePath) {
-        System.out.println("Saving network model.");
         try{
             ModelSerializer.writeModel(network, filePath, true);
         } catch(Exception ex){
@@ -72,7 +71,6 @@ public class NeuralNetwork {
     public void load(String filePath) {
         try{
             network = ModelSerializer.restoreMultiLayerNetwork(new File(filePath));
-            System.out.println("Gradient: " + network.getGradient().gradient());
         } catch(Exception ex){
         }
     }
@@ -98,7 +96,7 @@ public class NeuralNetwork {
 
     public void fit(INDArray input, INDArray output){
         network.fit(input, output);
-        System.out.println(network.feedForward());
+         //System.out.println(network.feedForward());
         // save("./data.zip");
     }
 

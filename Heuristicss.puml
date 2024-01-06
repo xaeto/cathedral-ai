@@ -1,0 +1,121 @@
+@startuml
+class org.cathedral.heuristics.AvoidGrayAreaHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.BlockHeuristic {
++ double eval(Game,int)
+- int countPlayerBuildings(Board,Color)
+- int countUnclaimedSpaces(Board,Color)
+- boolean isAdjacentToOpponentBuilding(Board,int,int,Color)
+- double blockOpponent(Board,Color)
+}
+class org.cathedral.heuristics.HeuristicsHelper {
++ {static} int countFieldById(Board,Color)
++ {static} List<Placement> getPossiblePlacements(Game)
+}
+class org.cathedral.heuristics.ZoneFutureHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.GameScoreHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.ZoneHeuristic {
++ double eval(Game,int)
++ double eval(BitBoard,int)
+}
+class org.cathedral.heuristics.GameStateHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.CapturedBuildingHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.CenterHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.LargeBuildingHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.BuildingHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.PlacementScore {
+- Placement placement
+- double score
++ Placement placement()
++ double score()
+}
+class org.cathedral.heuristics.BlockNewHeuristic {
+- ZoneHeuristic zoneHeuristic
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.BlockBigBuildingHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.CathedralHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.EnemyAreaHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.CombinedHeuristic {
+- Heuristic[] heuristics
++ double eval(Game,int)
+}
+abstract class org.cathedral.heuristics.Heuristic {
+- double weight
++ double getWeight()
++ {abstract}double eval(Game,int)
++ {static} int countFieldsByPlayerId(Board,Color)
+- {static} boolean isValidPosition(int,int)
+- {static} double calculateCenterControlHeuristic(Board,Color)
+- {static} double buildingHeuristic(Placement)
+- {static} double preferNearEnemyBuildingsHeuristic(Game)
+- {static} double calculateCenterHeuristic(Game)
+- {static} double edgeBuildingHeuristic(Placement)
+- {static} double createsNewZone(Game)
++ {static} double normalize(double,double,double)
+- {static} double placedInGrayArea(Game)
+- {static} double distanceToNearestEnemyBuilding(Game,Position)
+- {static} double calculateDistance(Position,Position)
+- {static} double calculateScoreDiff(Game)
+- {static} double cathedralLost(Game)
+- {static} double preferCornersHeuristic(Game)
+- {static} double discourageBigBuildingsHeuristic(Game)
+- {static} double earlyGameHeuristics(Game,Color)
+- {static} double midGameHeuristics(Game,Color)
+- {static} double endGameHeuristics(Game,Color)
+- {static} double calculatePlayerHeuristic(Game,Color)
+- {static} double block(Game)
++ {static} double calculateZoneHeuristic(Game)
+}
+class org.cathedral.heuristics.CornerHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.PlayerAreaHeuristic {
++ double eval(Game,int)
+}
+class org.cathedral.heuristics.StaticHeuristic {
+- {static} double calculateMaterial(Game)
+- {static} double calculateZone(Game)
++ {static} double eval(Game)
+}
+
+
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.AvoidGrayAreaHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.BlockHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.ZoneFutureHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.GameScoreHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.ZoneHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.GameStateHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.CapturedBuildingHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.CenterHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.LargeBuildingHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.BuildingHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.BlockNewHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.BlockBigBuildingHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.CathedralHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.EnemyAreaHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.CombinedHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.CornerHeuristic
+org.cathedral.heuristics.Heuristic <|-- org.cathedral.heuristics.PlayerAreaHeuristic
+@enduml
