@@ -43,15 +43,18 @@ public class NegamaxIterative extends Evaluator {
         double score = Double.NEGATIVE_INFINITY;
         Placement best = null;
 
+        double beta = Double.NEGATIVE_INFINITY;
+
         for(int depth = 1; depth < 6; ++depth){
             for(Placement placement : possiblePlacements){
                 game.takeTurn(placement, false);
-                double eval = negamax(game, depth, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+                double eval = negamax(game, depth, -beta, -score);
                 game.undoLastTurn();
                 if(eval >= score){
                     score = eval;
                     best = placement;
                 }
+                beta = Math.min(beta, eval);
             }
         }
 

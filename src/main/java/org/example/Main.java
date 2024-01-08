@@ -15,7 +15,6 @@ public class Main {
                 new BlockHeuristic(2),
                 new GameScoreHeuristic(5),
                 new LargeBuildingHeuristic(1),
-                new AvoidGrayAreaHeuristic(1)
         };
 
         AlphaBeta alphaBeta = new AlphaBeta(heuristic);
@@ -25,15 +24,17 @@ public class Main {
         Negamax negamax = new Negamax(heuristic);
         NegaScout negaScout = new NegaScout(heuristic);
         NegamaxParallel negamaxParallel = new NegamaxParallel(heuristic);
-        //NegamaxParallelTransposition negamaxParallelTransposition = new NegamaxParallelTransposition(heuristic);
+        NegamaxParallelTransposition negamaxParallelTransposition = new NegamaxParallelTransposition(heuristic);
 
         CathedralGUI.start(
                 new HeuristicalAgent(heuristic),
                 new VisualizedAgent(alphaBeta),
+                new VisualizedAgent(minMax),
                 new NeuralAgent(new NeuralNetwork(100, 10, 2)),
                 new VisualizedAgent(negamax),
                 new VisualizedAgent(negaScout),
-                new VisualizedAgent(negamaxParallel)
+                new VisualizedAgent(negamaxParallel),
+                new VisualizedAgent(negamaxParallelTransposition)
         );
     }
 }

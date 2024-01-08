@@ -62,8 +62,7 @@ public class NegaScout extends Evaluator {
                 alpha = eval;
                 best = placement;
             }
-
-            // beta = Math.min(beta, eval);
+            beta = Math.min(beta, eval);
         }
 
         printStats();

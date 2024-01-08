@@ -1,0 +1,11 @@
+@startuml
+class VisualizedAgent {
+- Evaluator evaluator
++ <<Create>> VisualizedAgent(Evaluator)
++ String name()
++ Optional<Placement> calculateTurn(Game,int,int)
+}
+
+
+Agent <|.. VisualizedAgent
+@enduml

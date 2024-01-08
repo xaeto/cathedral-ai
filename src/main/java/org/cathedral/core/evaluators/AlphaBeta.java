@@ -73,9 +73,6 @@ public class AlphaBeta extends Evaluator {
             }
         }
 
-        double optimal = alphaBeta(game, DEPTH, Double.NEGATIVE_INFINITY, Double. POSITIVE_INFINITY, true);
-        System.out.println("Optimal Score: " + optimal);
-
         printStats();
         resetStats();
         return best;

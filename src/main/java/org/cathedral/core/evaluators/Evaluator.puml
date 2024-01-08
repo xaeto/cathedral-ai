@@ -1,0 +1,12 @@
+@startuml
+abstract class Evaluator {
+# Heuristic[] heuristics
+# {static} int DEPTH
+# int cut
+# int total
++ <<Create>> Evaluator(Heuristic)
++ {abstract}Placement eval(Game)
+# void resetStats()
+# void printStats()
+}
+@enduml

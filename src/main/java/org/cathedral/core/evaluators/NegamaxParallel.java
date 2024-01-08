@@ -24,12 +24,6 @@ public class NegamaxParallel extends Evaluator {
 
         double score = Double.NEGATIVE_INFINITY;
         var moves = HeuristicsHelper.getPossiblePlacements(game);
-        moves.sort(Comparator.comparingDouble(placement -> {
-            game.takeTurn(placement, false);
-            double s = Arrays.stream(this.heuristics).mapToDouble(c -> c.eval(game, 1) * c.getWeight()).sum();
-            game.undoLastTurn();
-            return -s;
-        }));
         for(var move : moves){
             game.takeTurn(move, false);
             double eval = -negamax(game, depth -1, -beta, -alpha);
@@ -59,13 +53,13 @@ public class NegamaxParallel extends Evaluator {
         possiblePlacements.parallelStream().forEach(placement -> {
             var cp = game.copy();
             cp.takeTurn(placement, false);
-            double eval = -negamax(cp, 2, -beta.get(), -alpha.get());
+            double eval = -negamax(cp, 1, -beta.get(), -alpha.get());
 
             if (eval >= alpha.get()) {
                 alpha.set(eval);
                 best.set(placement);
             }
-            //beta.set(Math.min(beta.get(), eval));  // Update beta
+            beta.set(Math.min(beta.get(), eval));  // Update beta
         });
 
         return best.get();

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class Evaluator {
     protected Heuristic[] heuristics;
-    protected final static int DEPTH = 1;
+    protected final static int DEPTH = 2;
     protected AtomicInteger cut = new AtomicInteger(0);
     protected AtomicInteger total = new AtomicInteger(0);
     protected AtomicInteger cached = new AtomicInteger(0);

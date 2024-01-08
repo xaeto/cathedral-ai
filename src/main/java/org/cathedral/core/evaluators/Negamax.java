@@ -63,6 +63,7 @@ public class Negamax extends Evaluator {
                 alpha = eval;
                 best = move;
             }
+            beta = Math.max(eval, beta);
         }
 
         printStats();

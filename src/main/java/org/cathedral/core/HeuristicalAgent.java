@@ -112,6 +112,7 @@ public class HeuristicalAgent implements Agent {
             if (eval >= alpha) {
                 alpha = eval;
                 best = placement;
+                beta = Math.max(eval, beta);
             }
         }
 
